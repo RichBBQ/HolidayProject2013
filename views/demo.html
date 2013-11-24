@@ -1,0 +1,86 @@
+<!DOCTYPE html> 
+<html>
+	<head>
+		<title>Experiment</title>
+
+        <link rel="stylesheet" type="text/css"  href="../css/DemoPage.css" />
+        <script src="http://code.jquery.com/jquery-1.6.2.min.js"></script>
+        <script src="../js/ArrowPositionCalculator.js"></script>
+        <script>
+
+            var arrow = undefined;
+            var arrowPositionCalculator = undefined;
+            var spinning = true;
+
+            function init() {
+                arrow = $('#arrow');
+                arrowPositionCalculator = new ArrowPositionCalculator();
+            }
+
+
+            var main = function() {
+                if (spinning) {
+                    arrowPositionCalculator.updatePosition();
+                    var newPos = arrowPositionCalculator.getPosition() + "%";
+                    arrow.css('left', newPos);
+                }
+            }
+
+            function whiteSpaceHandler(e) {
+                if (e.keyCode === 32) {
+                    spinning = !spinning;
+                }
+            }
+
+            jQuery(document).ready(function($) {
+                var delayMilli = 30;
+
+
+                $('.lightbox_trigger').click(function(e) {
+                    e.preventDefault();
+
+                    if ($('#lightbox').length > 0) {
+                        $('#lightbox').show();
+                    }
+                });
+
+                //Click anywhere on the page to get rid of lightbox window
+                $('#lightbox').live('click', function() { //must use live, as the lightbox element is inserted into the DOM
+                    $('#lightbox').hide();
+                });
+
+                $(document).keydown(whiteSpaceHandler);
+
+                $('#lightbox').hide();
+                // initialize, this is needed before the main loop
+                init();
+                // Start the main loop
+                setInterval(main, delayMilli);
+            });
+        </script>
+
+	</head>
+    <body>
+        <div id="wrapper">
+            <h1>Experiment Game Bar</h1>
+                <ul>
+                    <li>
+                        <a class="lightbox_trigger">Start</a>
+                    </li>
+                </ul>
+             </p>
+        </div>
+
+        <div id="lightbox">
+            <div id="content">
+                <div class="meterenclosing">
+                   <img class="meter" src="../resource/meter_base.jpg" />
+                </div>
+                <div class="arrowenclosing">
+                    <img id="arrow" class="arrow" src="../resource/up_arrow.png" />
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+

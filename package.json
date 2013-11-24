@@ -1,0 +1,8 @@
+{
+  "name":"HolidayProject2013",
+  "description": "Holiday project 2013",
+  "version":"0.0.1",
+  "dependencies":{
+      "express":"3.x"
+  }
+}
