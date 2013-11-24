@@ -1,9 +1,17 @@
-var app = require('express').createServer();
+var express = require('express');
+var app = express();
+var server = require('http').createServer(app);
+var path = require('path');
 var port = process.env.VCAP_APP_PORT || 3000;
 
+app.use("/js", express.static(__dirname + '/js'));
+app.use("/css", express.static(__dirname + '/css'));
+app.use("/resource", express.static(__dirname + '/resource'));
+
 app.get('/', function(req, res) {
-    res.send('Hello from <a href="http://appfog.com">AppFog.com</a>');
-//    res.sendfile('./views/demo.html');
+    var demoFilePath = '/views/demo.html';
+    res.sendfile(demoFilePath, {root: __dirname});
 });
-app.listen(port);
+
+server.listen(port);
 console.log("Application started on port: " + port);
