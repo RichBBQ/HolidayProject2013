@@ -1,0 +1,125 @@
+html {
+    background: url("../resource/battle_splash.jpg") no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+.containing{
+    height: 7%;
+}
+
+.playerProfilesContainer {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.player {
+    border-radius: 20px;
+    margin: 4px;
+    width: 18%;
+    height: 7%;
+    background-color: rgba(0, 177, 0, 0.7);
+    border: solid 10px green;
+    float: left;
+}
+
+.attributes {
+    float: left;
+    width: 50%;
+    height: 100%;
+}
+
+.imageContainer {
+    float: right;
+    width: 50%;
+    height: 100%;
+}
+
+.imageContainer img {
+    height: 15%;
+    width: 100%;
+}
+
+.monster {
+    position: absolute;
+    top: 32%;
+    left: 32%;
+    border-radius: 20px;
+    margin: 4px;
+    width: 40%;
+    height: 38%;
+    background-color: rgba(207,0, 0, 0.7);
+    border: solid 10px red;
+}
+
+.monster .attributes {
+    float: left;
+    width: 50%;
+    height: 100%;
+}
+
+.monster .imageContainer {
+    float: right;
+    width: 50%;
+    height: 100%;
+}
+
+.monster .imageContainer img {
+    width: 100%;
+    height: 100%;
+}
+
+.name {
+    text-align: center;
+    font-family: Arial;
+    font-size: 180%;
+    color: blue;
+}
+
+.attributeContainer {
+    width: 100%;
+}
+
+.attr {
+    text-align: left;
+    width: 30%;
+    float: left;
+    font-size: 130%;
+    font-family: sans-serif;
+}
+
+.attrVal {
+    text-align: center;
+    width: 70%;
+    float: right;
+    font-size: 130%;
+    font-family: sans-serif;
+}
+
+.pressSpaceToStart {
+    font-size: 50px;
+    text-align: center;
+    color: red;
+}
+
+.actorInActionContainer {
+    width: 100%;
+    height: 23%;
+    margin-top: 10%;
+}
+
+#actorInAction {
+    border-radius: 20px;
+    width: 26%;
+    height: 100%;
+    background-color: rgba(182, 224, 250, 0.8);
+    border: solid 10px rgb(92, 153, 237);
+    margin: auto;
+}
+
+#actorInAction .imageContainer img {
+    width: 100%;
+    height: 100%;
+}

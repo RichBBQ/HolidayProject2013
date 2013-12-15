@@ -3,6 +3,9 @@
   "description": "Holiday project 2013",
   "version":"0.0.1",
   "dependencies":{
-      "express":"3.x"
+      "express":"3.x",
+      "hbs": "*",
+      "mongodb": "*",
+      "debug": "*"
   }
 }

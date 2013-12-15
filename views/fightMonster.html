@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster Fight!</title>
+    <link rel="stylesheet" type="text/css" href="../css/battleLayout.css" />
+    <link rel="stylesheet" type="text/css" href="../css/fightMonster.css" />
+    <link rel="stylesheet" type="text/css" href="../css/attackTools.css" />
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="../js/ArrowPositionCalculator.js"></script>
+    <script src="../js/MessageGenerater.js"></script>
+    <script src="../js/Utilities.js"></script>
+    <script type="text/javascript">
+        var playerData = JSON.parse('{{{json playerData}}}');
+        var monsterData = JSON.parse('{{{json monsterData}}}');
+        var refreshPeriod = 30; // refresh every 30ms
+        var shortestWaitLength = 5000; // 5 sec
+        var waitThreshold = 220;
+        // For the person with the most agility, this delta per refresh will make sure the
+        // person turn takes a turn every "shortestWaitingLength"
+        var baseWaitBarDeltaPerRefresh = ((refreshPeriod * waitThreshold) / shortestWaitLength);
+        var maxAgility = 100; // biggest agility of everyone involved in this match. Used for turnThreshold calc.
+        var profileCache = {}; // Cache DOM Object to reduce search time
+        var pauseWaitProgress = false;
+
+        // Attack tool related objects
+        var battleView = undefined;
+        var battleMessage = undefined;
+        var actorInAction = undefined;
+        var arrow = undefined;
+        var arrowPositionCalculator = undefined;
+        var turnQueue = [];
+        var atkActionInProgress = false;
+        var updateArrow = false;
+
+        var messageGenerater = undefined;
+
+        function initMaxAgility() {
+            var updateMaxAgility = function(actorData) {
+                if (actorData.hasOwnProperty('aggrAgi') && actorData['aggrAgi'] > maxAgility) {
+                    maxAgility = actorData['aggrAgi'];
+                }
+            }
+
+            // Need to figure out the max agility across player/monster
+            for (var actor in playerData) {
+                if (playerData.hasOwnProperty(actor)) {
+                    updateMaxAgility(playerData[actor]);
+                }
+            }
+            for (var actor in monsterData) {
+                if (monsterData.hasOwnProperty(actor)) {
+                    updateMaxAgility(monsterData[actor]);
+                }
+            }
+        }
+
+        function initWaitProgress() {
+            var startingProgress = 0; // TODO: reset back to zero, set high for testing purpose
+            for (var actor in playerData) {
+                var a = playerData[actor];
+                a['waitProgress'] = startingProgress;
+            }
+            for (var actor in monsterData) {
+                var a = monsterData[actor];
+                a['waitProgress'] = startingProgress;
+            }
+        }
+
+        /**
+         * Cache DOM Object to reduce dom manipulation time.
+         * This application will quite heavily update profiles.
+         */
+        function initProfileCache() {
+            for (var actor in playerData) {
+                profileCache[actor] = $('#'+actor);
+            }
+            for (var actor in monsterData) {
+                profileCache[actor] = $('#'+actor);
+            }
+        }
+
+        function initBattleView() {
+            battleView = $('#lightbox');
+            battleMessage = $('#battleMessage');
+            actorInAction = $('#actorInAction');
+            arrow = $('#arrow');
+            arrowPositionCalculator = new ArrowPositionCalculator();
+        }
+
+        function initMisc() {
+            messageGenerater = new MessageGenerater();
+        }
+
+        function registerActionKeys() {
+            $(document).keydown(function(e){
+                 if (e.keyCode === 32) { // white space
+                     attackActionHandler();
+                 }
+            });
+        }
+
+        function searchActor(actorName) {
+            if (playerData.hasOwnProperty(actorName)) {
+                return playerData[actorName];
+            }
+            else if (monsterData.hasOwnProperty(actorName)) {
+                return monsterData[actorName];
+            }
+            else {
+                return {};
+            }
+        }
+
+        function updateWaitBars() {
+            if (pauseWaitProgress) {
+                return;
+            }
+            for (var actor in profileCache) {
+                var profile = profileCache[actor];
+                var actorData = searchActor(actor);
+                var actorAgi = actorData['agi'];
+                var currentWaitProgress = actorData['waitProgress'];
+                // reset mercury is it's full
+                if (currentWaitProgress >= waitThreshold) {
+                    currentWaitProgress = 0;
+                }
+
+                // Get the delta for this player this turn.
+                // The player with "maxAgility" should receive
+                // the same delta as "baseWaitBarDeltaPerRefresh"
+                var deltaForActor = (actorAgi * baseWaitBarDeltaPerRefresh) / maxAgility;
+
+                // Update the wait bar, but don't go over waitThreshold
+                var waitProgress = currentWaitProgress + deltaForActor;
+
+                if (waitProgress > waitThreshold) {
+                    waitProgress = waitThreshold;
+                    // this actor can take a turn now, register it in turnQueue
+                    // to be picked up by another observer thread.
+                    turnQueue.push(actor);
+                }
+                actorData['waitProgress'] = waitProgress;
+                profile.find('.mercury').width(waitProgress);
+            }
+        }
+
+        function actorTurnObserver() {
+            if (turnQueue.length <= 0 || atkActionInProgress) {
+                // No one can act yet
+                return;
+            }
+            pauseWaitProgress = true;
+            var actorToTakeTurn = turnQueue.shift();
+            var actorData = searchActor(actorToTakeTurn);
+
+            // Put actorData into the lightbox
+            actorInAction.find('.actorName').html(actorData['playerName']);
+            actorInAction.find('.level').html(actorData['level']);
+            actorInAction.find('.pow').html(actorData['aggrPow']);
+            actorInAction.find('.hp').html(actorData['aggrHp']);
+            actorInAction.find('.agi').html(actorData['aggrAgi']);
+            actorInAction.find('.profilePic').attr('src', actorData['playerPicLink']);
+
+            arrowPositionCalculator.reset();
+            updateArrow = true;
+            atkActionInProgress = true;
+            battleView.show();
+        }
+
+        function attackAction() {
+            // Only perform work when atkActionInProgress and updating arrow
+            if (!atkActionInProgress || !updateArrow) {
+                return;
+            }
+            arrowPositionCalculator.updatePosition();
+            var newPos = arrowPositionCalculator.getPosition() + "%";
+            arrow.css('left', newPos);
+        }
+
+        function attackActionHandler() {
+            // Only perform work when atkActionInProgress and updating arrow
+            if (!atkActionInProgress || !updateArrow) {
+                return;
+            }
+            // TODO
+            updateArrow = false;
+            var actorData = getCurrentActorData();
+            var target = getRandomEntryFromJson(monsterData);
+            var dmg = getCurrentActorDamageOutput();
+            var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
+            battleMessage.html(atkMsg);
+            battleMessage.show();
+
+            setTimeout(function(){
+                // Set everything back to action ONLY AFTER the atk message is done displaying.
+                atkActionInProgress = false;
+                battleMessage.hide();
+                battleView.hide();
+                pauseWaitProgress = false;
+            }, 3000);
+        }
+
+        /**
+         * Helper function to get dmg output. Assumption is made that actorInAction is filled in
+         * and atkActionInProgress is already set to false so the arrow has stopped moving.
+         */
+        function getCurrentActorDamageOutput() {
+            var actorData = getCurrentActorData();
+            var arrowPos = arrowPositionCalculator.getAdjustedPosition();
+            var damageOutput = actorData['aggrPow'] - Math.floor((actorData['aggrPow'] * Math.abs(arrowPos - 50)) / 50) ;
+            return damageOutput;
+        }
+
+        function getCurrentActorData() {
+            var actorName = actorInAction.find('.actorName').html();
+            var actorData = searchActor(actorName);
+            return actorData;
+        }
+
+        function getRandomEntryFromJson(jsonObj) {
+            var jsonObjArr = $.map(jsonObj, function(value, key){ return value; });
+            jsonObjArr = shuffle(jsonObjArr);
+            return jsonObjArr.shift();
+        }
+
+        $(document).ready(function($){
+            initMaxAgility();
+            initWaitProgress();
+            initProfileCache();
+            initBattleView();
+            initMisc();
+            registerActionKeys();
+
+            /*
+            var testRun = 0;
+            var interval = setInterval(function() {
+                updateWaitBars();
+                testRun += 1;
+                if (testRun >= 10) {
+                    clearInterval(interval);
+                }
+            }, refreshPeriod);
+            */
+            setInterval(updateWaitBars, refreshPeriod);
+            setInterval(actorTurnObserver, refreshPeriod);
+            setInterval(attackAction, refreshPeriod);
+        });
+    </script>
+</head>
+<body>
+    <div class="containing">
+        <div class="playerProfilesContainer">
+        {{#each playerData}}
+            <div class="player" id="{{this.playerName}}">
+                <div class="attributes">
+                    <div class="name"><span>{{this.playerName}}</span></div>
+                    <div class="attributeContainer">
+                        <div class="attr">Level: </div><div class="attrVal level">{{this.level}}</div>
+                    </div>
+                    <div class="attributeContainer">
+                        <div class="attr">Power: </div><div class="attrVal pow">{{this.aggrPow}}</div>
+                    </div>
+                    <div class="attributeContainer">
+                        <span class="attr">HP: </span><span class="attrVal hp">{{this.aggrHp}}</span>
+                    </div>
+                    <div class="attributeContainer">
+                        <span class="attr">Agility: </span><span class="attrVal agi">{{this.aggrAgi}}</span>
+                    </div>
+                </div>
+                <div class="imageContainer">
+                    <img class="profilePic" src="{{this.playerPicLink}}" />
+                </div>
+                <div class="thermometer">
+                    <span class="mercury"></span>
+                </div>
+            </div>
+        {{/each}}
+        </div>
+    </div>
+
+
+    <div class="monsterProfilesContainer">
+    {{#each monsterData}}
+        <div class="monster" id="{{this.playerName}}">
+            <div class="attributes">
+                <div class="name"><span>{{this.playerName}}</span></div>
+                <div class="attributeContainer">
+                    <div class="attr">Level: </div><div class="attrVal level">{{this.level}}</div>
+                </div>
+                <div class="attributeContainer">
+                    <div class="attr">Power: </div><div class="attrVal pow">{{this.aggrPow}}</div>
+                </div>
+                <div class="attributeContainer">
+                    <span class="attr">HP: </span><span class="attrVal hp">{{this.aggrHp}}</span>
+                </div>
+                <div class="attributeContainer">
+                    <span class="attr">Agility: </span><span class="attrVal agi">{{this.aggrAgi}}</span>
+                </div>
+            </div>
+            <div class="imageContainer">
+                <img class="profilePic" src="{{this.playerPicLink}}" />
+            </div>
+            <div class="thermometer">
+                <span class="mercury"></span>
+            </div>
+        </div>
+    {{/each}}
+    </div>
+
+    <div id="lightbox">
+        <div class="actorInActionContainer">
+            <div id="actorInAction">
+                <div class="attributes">
+                    <div class="name"><span class="actorName"></span></div>
+                    <div class="attributeContainer">
+                        <div class="attr">Level: </div><div class="attrVal level"></div>
+                    </div>
+                    <div class="attributeContainer">
+                        <div class="attr">Power: </div><div class="attrVal pow"></div>
+                    </div>
+                    <div class="attributeContainer">
+                        <div class="attr">HP: </div><div class="attrVal hp"></div>
+                    </div>
+                    <div class="attributeContainer">
+                        <div class="attr">Agility: </div><div class="attrVal agi"></div>
+                    </div>
+                </div>
+                <div class="imageContainer">
+                    <img class="profilePic" src="" />
+                </div>
+            </div>
+        </div>
+
+        <div id="meterTool">
+            <div class="meterenclosing">
+                <img class="meter" src="../resource/meter_base.jpg" />
+            </div>
+            <div class="arrowenclosing">
+                <img id="arrow" class="arrow" src="../resource/up_arrow.png" />
+            </div>
+        </div>
+
+        <div id="battleMessage" class="battleMessage"></div>
+    </div>
+</body>
+</html>

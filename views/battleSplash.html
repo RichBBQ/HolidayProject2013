@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Battle Overview!</title>
+    <link rel="stylesheet" type="text/css" href="../css/battleLayout.css" />
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function($) {
+            // set up the blinker
+            $('.pressSpaceToStart').each(function(){
+                var elem = $(this);
+                setInterval(function() {
+                    $(elem).fadeOut(1500/2);
+                    $(elem).fadeIn(1500/2);
+                }, 1500);
+            });
+        });
+
+        $(document).keydown(function(e){
+            if (e.keyCode === 32) { // white space
+                window.location = 'fightMonster' + document.location.search;
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="containing">
+        <div class="playerProfilesContainer">
+        {{#each playerData}}
+            <div class="player">
+                <div class="attributes">
+                    <div class="name"><span>{{this.playerName}}</span></div>
+                    <div class="attributeContainer">
+                        <div class="attr">Level: </div><div class="attrVal">{{this.level}}</div>
+                    </div>
+                    <div class="attributeContainer">
+                        <div class="attr">Power: </div><div class="attrVal">{{this.aggrPow}}</div>
+                    </div>
+                    <div class="attributeContainer">
+                        <span class="attr">HP: </span><span class="attrVal">{{this.aggrHp}}</span>
+                    </div>
+                    <div class="attributeContainer">
+                        <span class="attr">Agility: </span><span class="attrVal">{{this.aggrAgi}}</span>
+                    </div>
+                </div>
+                <div class="imageContainer">
+                    <img class="profilePic" src="{{this.playerPicLink}}" />
+                </div>
+            </div>
+        {{/each}}
+        </div>
+    </div>
+
+
+    <div class="monsterProfilesContainer">
+    {{#each monsterData}}
+        <div class="monster">
+            <div class="attributes">
+                <div class="name"><span>{{this.playerName}}</span></div>
+                <div class="attributeContainer">
+                    <div class="attr">Level: </div><div class="attrVal">{{this.level}}</div>
+                </div>
+                <div class="attributeContainer">
+                    <div class="attr">Power: </div><div class="attrVal">{{this.aggrPow}}</div>
+                </div>
+                <div class="attributeContainer">
+                    <span class="attr">HP: </span><span class="attrVal">{{this.aggrHp}}</span>
+                </div>
+                <div class="attributeContainer">
+                    <span class="attr">Agility: </span><span class="attrVal">{{this.aggrAgi}}</span>
+                </div>
+            </div>
+            <div class="imageContainer">
+                <img class="profilePic" src="{{this.playerPicLink}}" />
+            </div>
+        </div>
+    {{/each}}
+    </div>
+
+    <div class="pressSpaceToStart">Press Space to start ... </div>
+
+</body>
+</html>

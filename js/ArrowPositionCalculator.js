@@ -1,6 +1,3 @@
-/**
- * Created by RichBB on 11/18/13.
- */
 function ArrowPositionCalculator() {
     this.POSITIVE_DIR = 1;
     this.NEGATIVE_DIR = -1;
@@ -41,5 +38,12 @@ function ArrowPositionCalculator() {
 
     this.getPosition = function() {
         return this.currentPosition;
+    }
+
+    /**
+     * On a scale of 0 to 100.
+     */
+    this.getAdjustedPosition = function() {
+        return this.currentPosition + 1;
     }
 }

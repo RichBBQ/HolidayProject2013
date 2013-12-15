@@ -1,0 +1,14 @@
+.thermometer{
+    background: url("../resource/thermometer.png") no-repeat;
+    padding: 4px 0;
+    width: 100%;
+    clear: both;
+}
+
+.mercury{
+    background: #217100;
+    display: block;
+    height: 9px;
+    margin-left: 6px;
+    margin-top: -2px;
+}

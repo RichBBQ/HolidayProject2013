@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monster Fight!</title>
+    <script type="text/javascript">
+        var playerDataStr = '{{{json playerData}}}';
+        var playerData = JSON.parse(playerDataStr);
+
+    </script>
+</head>
+<body>
+    {{playerData.Richard.playerName}}
+    {{{playerData.Richard.playerName}}}
+
+    {{#each playerData}}
+        <div>
+            Key (Name): {{@key}}
+            Link: {{this.playerPicLink}}
+            <br />
+            {{#isEqual this.actorType 'p'}}
+                I am a person
+            {{/isEqual}}
+            <br /><br />
+        </div>
+    {{/each}}
+
+</body>
+</html>

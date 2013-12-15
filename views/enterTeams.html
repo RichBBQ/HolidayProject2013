@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Team Select</title>
+    <style type="text/css">
+
+        html {
+            background: url("../resource/enter_team_bg.jpg") no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+
+        .startBattleButton {
+            position: absolute;
+            margin-left: 45%;
+            width: 200px;
+            height: 50px;
+        }
+
+        .startBattleButton input[type=submit] {
+            width: 100%;
+            font-family: Arial;
+            font-size: 20px;
+        }
+
+        .teamsContainer {
+            position: relative;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20%;
+            width: 70%;
+        }
+
+        .teamOne {
+            width: 300px;
+            float: left;
+        }
+
+        .teamTwo {
+            width: 300px;
+            float: right;
+        }
+
+        .teamTitle {
+            border-radius: 10px;
+            width: 300px;
+            margin: 5px;
+            padding: 5px;
+            overflow: hidden;
+            border: solid 5px rgb(153, 222, 33);
+            background-color: rgba(232, 245, 115, 0.9);
+            box-shadow: 0px 0px 5px 2px rgba(0, 0, 0, 0.1) inset;
+        }
+
+        .teamTitle input[type=text] {
+            text-align: center;
+            width: 100%;
+            border: 0px;
+            font-family: Arial;
+            font-size: 30px;
+            background-color: transparent;
+        }
+
+        .roster {
+            border-radius: 10px;
+            width: 300px;
+            margin: 5px;
+            padding: 5px;
+        }
+
+        .roster input[type=text] {
+            text-align: center;
+            width: 100%;
+            font-family: Arial;
+            font-size: 24px;
+            border: solid 5px rgb(113, 209, 222);
+            border-radius: 20px;
+            background-color: rgba(172, 218, 245, 0.9);
+        }
+
+        .loading {
+            position: absolute;
+            width: 30%;
+            height: 40%;
+            margin-top: 30%;
+            margin-left: 30%;
+        }
+        .loading img {
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<div class="loading">
+    <img src="../resource/loading.gif" />
+</div>
+<div class="teamsContainer">
+    <form action="battleSplash" method="GET">
+        <div class="teamOne">
+            <div class="teamTitle">
+                <input name="t1" type="text" placeholder="Heros" autofocus="true"/>
+            </div>
+            <div class="roster">
+                <input name="p1" type="text" placeholder="Enter player ..."/>
+                <input name="p2" type="text" placeholder="Enter player ..."/>
+                <input name="p3" type="text" placeholder="Enter player ..."/>
+                <input name="p4" type="text" placeholder="Enter player ..."/>
+                <input name="p5" type="text" placeholder="Enter player ..."/>
+            </div>
+        </div>
+
+        <div class="teamTwo">
+            <div class="teamTitle">
+                <input name="t2" type="text" placeholder="Monster"/>
+            </div>
+            <div class="roster">
+                <input name="m1" type="text" placeholder="Enter monster ..."/>
+            </div>
+        </div>
+
+        <div class="startBattleButton">
+            <input type="submit" value="Let The Battle Begin"/>
+        </div>
+    </form>
+</div>
+</body>
+</html>

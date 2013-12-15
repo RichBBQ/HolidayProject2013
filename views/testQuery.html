@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <script type="text/javascript">
+        var testNonEscapeJsonStr = '{{{json queryData}}}';
+        var testNonEscapeJsonObj = JSON.parse(testNonEscapeJsonStr);
+        var testEscapeJsonStr = '{{json queryData}}';
+        var testGetEscapeJsonObj = JSON.parse('{{json queryData}}'.replace(/&quot;/g, '"'));
+        console.log(testNonEscapeJsonStr);
+        console.log(testNonEscapeJsonObj);
+        console.log(testNonEscapeJsonObj.a);
+        console.log(testEscapeJsonStr);
+        console.log(testGetEscapeJsonObj);
+        console.log(testGetEscapeJsonObj.a);
+    </script>
+</head>
+<body>
+    <h1>{{head}}</h1>
+    <div>
+        <span>{{queryData.a}}</span>
+        <br />
+        <span>{{queryData.b}}</span>
+        <br />
+        <span>{{queryData.c}}</span>
+        <br />
+        <span>{{queryData.data}}</span>
+    </div>
+    <div>
+        {{#each queryData}}
+            <div>testRetrieve: {{data}}</div>
+        {{/each}}
+    </div>
+</body>
+</html>
