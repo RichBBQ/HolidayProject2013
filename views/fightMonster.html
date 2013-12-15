@@ -31,6 +31,8 @@
         var turnQueue = [];
         var atkActionInProgress = false;
         var updateArrow = false;
+        // Monster AI related
+        var monsterTurnScheduled = false;
 
         var messageGenerater = undefined;
 
@@ -94,7 +96,7 @@
         function registerActionKeys() {
             $(document).keydown(function(e){
                  if (e.keyCode === 32) { // white space
-                     attackActionHandler();
+                     userAttackActionHandler();
                  }
             });
         }
@@ -116,8 +118,13 @@
                 return;
             }
             for (var actor in profileCache) {
-                var profile = profileCache[actor];
                 var actorData = searchActor(actor);
+                // don't update dead people
+                if (actorData['isDead'] !== undefined && actorData['isDead']) {
+                    continue;
+                }
+
+                var profile = profileCache[actor];
                 var actorAgi = actorData['agi'];
                 var currentWaitProgress = actorData['waitProgress'];
                 // reset mercury is it's full
@@ -153,13 +160,8 @@
             var actorToTakeTurn = turnQueue.shift();
             var actorData = searchActor(actorToTakeTurn);
 
-            // Put actorData into the lightbox
-            actorInAction.find('.actorName').html(actorData['playerName']);
-            actorInAction.find('.level').html(actorData['level']);
-            actorInAction.find('.pow').html(actorData['aggrPow']);
-            actorInAction.find('.hp').html(actorData['aggrHp']);
-            actorInAction.find('.agi').html(actorData['aggrAgi']);
-            actorInAction.find('.profilePic').attr('src', actorData['playerPicLink']);
+            // Put actorData into the lightbox profile
+            refreshProfile(actorInAction, actorData);
 
             arrowPositionCalculator.reset();
             updateArrow = true;
@@ -167,8 +169,18 @@
             battleView.show();
         }
 
+        function refreshProfile(profileDom, actorData) {
+            profileDom.find('.actorName').html(actorData['playerName']);
+            profileDom.find('.level').html(actorData['level']);
+            profileDom.find('.pow').html(actorData['aggrPow']);
+            profileDom.find('.hp').html(actorData['aggrHp']);
+            profileDom.find('.agi').html(actorData['aggrAgi']);
+            profileDom.find('.profilePic').attr('src', actorData['playerPicLink']);
+
+        }
+
         function attackAction() {
-            // Only perform work when atkActionInProgress and updating arrow
+            // Only do work when atkActionInProgress and updating arrow
             if (!atkActionInProgress || !updateArrow) {
                 return;
             }
@@ -177,27 +189,116 @@
             arrow.css('left', newPos);
         }
 
-        function attackActionHandler() {
-            // Only perform work when atkActionInProgress and updating arrow
-            if (!atkActionInProgress || !updateArrow) {
+        function monsterAI() {
+            if (!atkActionInProgress || !updateArrow || !currentActorIsAMonster() || monsterTurnScheduled) {
                 return;
             }
-            // TODO
+            // double check if it's the monster's turn
+            if (atkActionInProgress && updateArrow && currentActorIsAMonster() && (!monsterTurnScheduled)) {
+                var monsterActionLength = getRandomInt(2000, 6500);
+                setTimeout(function(){
+                    updateArrow = false;
+                    var actorData = getCurrentActorData();
+                    var target = getRandomEntryFromJson(playerData);
+                    // select a non dead target
+                    while (target['isDead']) {
+                        target = getRandomEntryFromJson(playerData);
+                    }
+                    var dmg = getCurrentActorDamageOutput();
+                    var targetProfileDom = profileCache[target['playerName']];
+
+                    // Apply damage and have a quick showing
+                    target['aggrHp'] = target['aggrHp'] - dmg;
+                    if (target['aggrHp'] < 0) {
+                        target['isDead'] = true;
+                        target['aggrHp'] = 0;
+                    }
+                    var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
+                    refreshProfile(targetProfileDom, target);
+
+                    battleMessage.html(atkMsg);
+                    battleMessage.show();
+
+                    setTimeout(function(){
+                        // Set up profile blinking after overlay is gone
+                        var blinkTimes = 3;
+                        var blinked = 0;
+                        var blinkLength = 200;
+                        var blinkAnimeInterval = setInterval(function() {
+                            targetProfileDom.fadeOut(blinkLength / 2);
+                            targetProfileDom.fadeIn(blinkLength / 2);
+                            blinked += 1;
+                            if (blinked >= blinkTimes) {
+                                clearInterval(blinkAnimeInterval);
+                            }
+                        }, blinkLength);
+
+                        // Set everything back to action ONLY AFTER the atk message is done displaying.
+                        atkActionInProgress = false;
+                        battleMessage.hide();
+                        battleView.hide();
+                        pauseWaitProgress = false;
+                        monsterTurnScheduled = false;
+                    }, 3000);
+
+                }, monsterActionLength);
+                monsterTurnScheduled = true;
+            }
+        }
+
+        function userAttackActionHandler() {
+            // Only do work when atkActionInProgress and updating arrow
+            if (!atkActionInProgress || !updateArrow || currentActorIsAMonster()) {
+                return;
+            }
             updateArrow = false;
             var actorData = getCurrentActorData();
+            // by reference. target points to the actual json object in monsterData.
+            // updating "target" object will have direct effect on what's stored in monsterData.
             var target = getRandomEntryFromJson(monsterData);
             var dmg = getCurrentActorDamageOutput();
+            var targetProfileDom = profileCache[target['playerName']];
+
+            // Apply damage and have a quick showing
+            target['aggrHp'] = target['aggrHp'] - dmg;
+            if (target['aggrHp'] <= 0) { // target dead
+                target['isDead'] = true;
+                target['aggrHp'] = 0;
+            }
             var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
+            refreshProfile(targetProfileDom, target);
+
             battleMessage.html(atkMsg);
             battleMessage.show();
 
             setTimeout(function(){
+                // Set up profile blinking after overlay is gone
+                var blinkTimes = 3;
+                var blinked = 0;
+                var blinkLength = 200;
+                var blinkAnimeInterval = setInterval(function() {
+                    targetProfileDom.fadeOut(blinkLength / 2);
+                    targetProfileDom.fadeIn(blinkLength / 2);
+                    blinked += 1;
+                    if (blinked >= blinkTimes) {
+                        clearInterval(blinkAnimeInterval);
+                    }
+                }, blinkLength);
+
                 // Set everything back to action ONLY AFTER the atk message is done displaying.
                 atkActionInProgress = false;
                 battleMessage.hide();
                 battleView.hide();
                 pauseWaitProgress = false;
             }, 3000);
+        }
+
+        function currentActorIsAMonster() {
+            var actorData = getCurrentActorData();
+            if (actorData === undefined) {
+                return false;
+            }
+            return (actorData['actorType'] == 'm');
         }
 
         /**
@@ -244,6 +345,7 @@
             setInterval(updateWaitBars, refreshPeriod);
             setInterval(actorTurnObserver, refreshPeriod);
             setInterval(attackAction, refreshPeriod);
+            setInterval(monsterAI, 2000); // monster AI can run less often
         });
     </script>
 </head>
@@ -253,7 +355,7 @@
         {{#each playerData}}
             <div class="player" id="{{this.playerName}}">
                 <div class="attributes">
-                    <div class="name"><span>{{this.playerName}}</span></div>
+                    <div class="name"><span class="actorName">{{this.playerName}}</span></div>
                     <div class="attributeContainer">
                         <div class="attr">Level: </div><div class="attrVal level">{{this.level}}</div>
                     </div>
@@ -283,7 +385,7 @@
     {{#each monsterData}}
         <div class="monster" id="{{this.playerName}}">
             <div class="attributes">
-                <div class="name"><span>{{this.playerName}}</span></div>
+                <div class="name"><span class="actorName">{{this.playerName}}</span></div>
                 <div class="attributeContainer">
                     <div class="attr">Level: </div><div class="attrVal level">{{this.level}}</div>
                 </div>

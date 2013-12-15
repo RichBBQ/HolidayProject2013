@@ -93,7 +93,6 @@ app.get('/enterTeams', function(req, res){
     res.sendfile(enterTeamsPage, {root: __dirname});
 });
 app.get('/battleSplash', function(req, res){
-    console.log(req.query);
     var renderBattleSplash = function(playerData, monsterData) {
         var renderParam = {
             playerData: playerData,
@@ -105,7 +104,6 @@ app.get('/battleSplash', function(req, res){
     db.getPlayerData(req.query, renderBattleSplash)
 });
 app.get('/fightMonster', function(req, res){
-    console.log(req.query);
     var renderFightMonster = function(playerData, monsterData) {
         var renderParam = {
             playerData: playerData,

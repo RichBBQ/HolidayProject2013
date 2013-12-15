@@ -7,7 +7,7 @@ function ArrowPositionCalculator() {
     this.biggestPosition = 99;
 
     this.currentPosition = 0;
-    this.speed = 12;
+    this.speed = 17;
 
     this.reset = function() {
         this.currentPosition = 0;
