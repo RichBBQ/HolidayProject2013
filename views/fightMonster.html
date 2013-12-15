@@ -31,10 +31,14 @@
         var turnQueue = [];
         var atkActionInProgress = false;
         var updateArrow = false;
+        var messageGenerater = undefined;
+
         // Monster AI related
         var monsterTurnScheduled = false;
 
-        var messageGenerater = undefined;
+        // Victory condition
+        var playersWon = false;
+        var monsterWon = false;
 
         function initMaxAgility() {
             var updateMaxAgility = function(actorData) {
@@ -189,12 +193,39 @@
             arrow.css('left', newPos);
         }
 
+        function atLeastOnePlayerAlive() {
+            for (var player in playerData) {
+                var isDead = playerData[player]['isDead'];
+                if (isDead === undefined || !isDead) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function atLeastOneMonsterAlive() {
+            for (var m in monsterData) {
+                var isDead = monsterData[m]['isDead'];
+                if (isDead === undefined || !isDead) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function monsterAI() {
             if (!atkActionInProgress || !updateArrow || !currentActorIsAMonster() || monsterTurnScheduled) {
                 return;
             }
             // double check if it's the monster's turn
             if (atkActionInProgress && updateArrow && currentActorIsAMonster() && (!monsterTurnScheduled)) {
+                // First check if there's any player alive or not
+                if (!atLeastOnePlayerAlive()) {
+                    monsterTurnScheduled = false;
+                    monsterWon = true;
+                    return;
+                }
+
                 var monsterActionLength = getRandomInt(2000, 6500);
                 setTimeout(function(){
                     updateArrow = false;
@@ -264,6 +295,9 @@
             if (target['aggrHp'] <= 0) { // target dead
                 target['isDead'] = true;
                 target['aggrHp'] = 0;
+                if (!atLeastOneMonsterAlive()) {
+                     playersWon = true;
+                }
             }
             var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
             refreshProfile(targetProfileDom, target);
