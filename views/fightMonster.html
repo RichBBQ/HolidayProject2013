@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Monster Fight!</title>
-    <link rel="stylesheet" type="text/css" href="../css/battleLayout.css" />
+    <link rel="stylesheet" type="text/css" href="../css/fightMonsterLayout.css" />
     <link rel="stylesheet" type="text/css" href="../css/fightMonster.css" />
     <link rel="stylesheet" type="text/css" href="../css/attackTools.css" />
     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
@@ -164,8 +164,12 @@
             var actorToTakeTurn = turnQueue.shift();
             var actorData = searchActor(actorToTakeTurn);
 
-            // Put actorData into the lightbox profile
+            // Put actorData into actorInAction dom cache
             refreshProfile(actorInAction, actorData);
+            profileCache[actorToTakeTurn].addClass('profileSelected');
+            profileCache[actorToTakeTurn].addClass('selectedProfileColoring');
+            profileCache[actorToTakeTurn].removeClass('playerProfileColoring');
+            profileCache[actorToTakeTurn].removeClass('monsterProfileColoring');
 
             arrowPositionCalculator.reset();
             updateArrow = true;
@@ -241,35 +245,36 @@
                     // Apply damage and have a quick showing
                     target['aggrHp'] = target['aggrHp'] - dmg;
                     if (target['aggrHp'] < 0) {
+                        markActorDead(target['playerName']);
                         target['isDead'] = true;
                         target['aggrHp'] = 0;
                     }
                     var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
-                    refreshProfile(targetProfileDom, target);
 
+                    // Blink attacked people for visual effect
+                    var blinkTimes = 3;
+                    var blinked = 0;
+                    var blinkLength = 200;
+                    var blinkAnimeInterval = setInterval(function() {
+                        targetProfileDom.fadeOut(blinkLength / 2);
+                        targetProfileDom.fadeIn(blinkLength / 2);
+                        blinked += 1;
+                        if (blinked >= blinkTimes) {
+                            clearInterval(blinkAnimeInterval);
+                        }
+                    }, blinkLength);
+                    refreshProfile(targetProfileDom, target);
                     battleMessage.html(atkMsg);
                     battleMessage.show();
 
                     setTimeout(function(){
-                        // Set up profile blinking after overlay is gone
-                        var blinkTimes = 3;
-                        var blinked = 0;
-                        var blinkLength = 200;
-                        var blinkAnimeInterval = setInterval(function() {
-                            targetProfileDom.fadeOut(blinkLength / 2);
-                            targetProfileDom.fadeIn(blinkLength / 2);
-                            blinked += 1;
-                            if (blinked >= blinkTimes) {
-                                clearInterval(blinkAnimeInterval);
-                            }
-                        }, blinkLength);
-
                         // Set everything back to action ONLY AFTER the atk message is done displaying.
                         atkActionInProgress = false;
                         battleMessage.hide();
                         battleView.hide();
                         pauseWaitProgress = false;
                         monsterTurnScheduled = false;
+                        unSelectActor(actorData['playerName']);
                     }, 3000);
 
                 }, monsterActionLength);
@@ -293,6 +298,7 @@
             // Apply damage and have a quick showing
             target['aggrHp'] = target['aggrHp'] - dmg;
             if (target['aggrHp'] <= 0) { // target dead
+                markActorDead(target['playerName']);
                 target['isDead'] = true;
                 target['aggrHp'] = 0;
                 if (!atLeastOneMonsterAlive()) {
@@ -300,31 +306,53 @@
                 }
             }
             var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
-            refreshProfile(targetProfileDom, target);
 
+            // Blink attacked people for visual effect
+            var blinkTimes = 3;
+            var blinked = 0;
+            var blinkLength = 200;
+            var blinkAnimeInterval = setInterval(function() {
+                targetProfileDom.fadeOut(blinkLength / 2);
+                targetProfileDom.fadeIn(blinkLength / 2);
+                blinked += 1;
+                if (blinked >= blinkTimes) {
+                    clearInterval(blinkAnimeInterval);
+                }
+            }, blinkLength);
             battleMessage.html(atkMsg);
             battleMessage.show();
+            refreshProfile(targetProfileDom, target);
+            // TODO: insert attack sound effect here
 
+            // Allow message up for 3 seconds
             setTimeout(function(){
-                // Set up profile blinking after overlay is gone
-                var blinkTimes = 3;
-                var blinked = 0;
-                var blinkLength = 200;
-                var blinkAnimeInterval = setInterval(function() {
-                    targetProfileDom.fadeOut(blinkLength / 2);
-                    targetProfileDom.fadeIn(blinkLength / 2);
-                    blinked += 1;
-                    if (blinked >= blinkTimes) {
-                        clearInterval(blinkAnimeInterval);
-                    }
-                }, blinkLength);
-
                 // Set everything back to action ONLY AFTER the atk message is done displaying.
                 atkActionInProgress = false;
                 battleMessage.hide();
                 battleView.hide();
                 pauseWaitProgress = false;
+                unSelectActor(actorData['playerName']);
             }, 3000);
+        }
+
+        function unSelectActor(actorName) {
+            var actorData = searchActor(actorName);
+            profileCache[actorName].removeClass('profileSelected');
+            profileCache[actorName].removeClass('selectedProfileColoring');
+            if (actorData['actorType'] == 'm') {
+                profileCache[actorName].addClass('monsterProfileColoring');
+            }
+            else {
+                profileCache[actorName].addClass('playerProfileColoring');
+            }
+        }
+
+        function markActorDead(actorName) {
+            var actorData = searchActor(actorName);
+            profileCache[actorName].removeClass('selectedProfileColoring');
+            profileCache[actorName].removeClass('playerProfileColoring');
+            profileCache[actorName].removeClass('monsterProfileColoring');
+            profileCache[actorName].addClass('actorDead');
         }
 
         function currentActorIsAMonster() {
@@ -384,10 +412,10 @@
     </script>
 </head>
 <body>
-    <div class="containing">
-        <div class="playerProfilesContainer">
+    <div class="playerProfilesContainer">
+        <div class="playerListContainer">
         {{#each playerData}}
-            <div class="player" id="{{this.playerName}}">
+            <div class="player playerProfileColoring" id="{{this.playerName}}">
                 <div class="attributes">
                     <div class="name"><span class="actorName">{{this.playerName}}</span></div>
                     <div class="attributeContainer">
@@ -414,10 +442,22 @@
         </div>
     </div>
 
+    <div id="lightbox">
+        <div id="meterTool">
+            <div class="meterenclosing">
+                <img class="meter" src="../resource/meter_base.jpg" />
+            </div>
+            <div class="arrowenclosing">
+                <img id="arrow" class="arrow" src="../resource/up_arrow.png" />
+            </div>
+        </div>
+
+        <div id="battleMessage" class="battleMessage"></div>
+    </div>
 
     <div class="monsterProfilesContainer">
     {{#each monsterData}}
-        <div class="monster" id="{{this.playerName}}">
+        <div class="monster monsterProfileColoring" id="{{this.playerName}}">
             <div class="attributes">
                 <div class="name"><span class="actorName">{{this.playerName}}</span></div>
                 <div class="attributeContainer">
@@ -443,40 +483,17 @@
     {{/each}}
     </div>
 
-    <div id="lightbox">
-        <div class="actorInActionContainer">
-            <div id="actorInAction">
-                <div class="attributes">
-                    <div class="name"><span class="actorName"></span></div>
-                    <div class="attributeContainer">
-                        <div class="attr">Level: </div><div class="attrVal level"></div>
-                    </div>
-                    <div class="attributeContainer">
-                        <div class="attr">Power: </div><div class="attrVal pow"></div>
-                    </div>
-                    <div class="attributeContainer">
-                        <div class="attr">HP: </div><div class="attrVal hp"></div>
-                    </div>
-                    <div class="attributeContainer">
-                        <div class="attr">Agility: </div><div class="attrVal agi"></div>
-                    </div>
-                </div>
-                <div class="imageContainer">
-                    <img class="profilePic" src="" />
-                </div>
-            </div>
-        </div>
 
-        <div id="meterTool">
-            <div class="meterenclosing">
-                <img class="meter" src="../resource/meter_base.jpg" />
-            </div>
-            <div class="arrowenclosing">
-                <img id="arrow" class="arrow" src="../resource/up_arrow.png" />
-            </div>
+    <!-- Place Holder for cache purpose -->
+    <div class="actorInActionContainer">
+        <div id="actorInAction">
+            <span class="actorName"></span>
+            <div class="level"></div>
+            <div class="pow"></div>
+            <div class="hp"></div>
+            <div class="agi"></div>
+            <img class="profilePic" src="" />
         </div>
-
-        <div id="battleMessage" class="battleMessage"></div>
     </div>
 </body>
 </html>

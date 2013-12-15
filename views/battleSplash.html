@@ -24,10 +24,10 @@
     </script>
 </head>
 <body>
-    <div class="containing">
-        <div class="playerProfilesContainer">
+    <div class="playerProfilesContainer">
+        <div class="playerListContainer">
         {{#each playerData}}
-            <div class="player">
+            <div class="player playerProfileColoring">
                 <div class="attributes">
                     <div class="name"><span>{{this.playerName}}</span></div>
                     <div class="attributeContainer">
@@ -54,7 +54,7 @@
 
     <div class="monsterProfilesContainer">
     {{#each monsterData}}
-        <div class="monster">
+        <div class="monster monsterProfileColoring">
             <div class="attributes">
                 <div class="name"><span>{{this.playerName}}</span></div>
                 <div class="attributeContainer">
