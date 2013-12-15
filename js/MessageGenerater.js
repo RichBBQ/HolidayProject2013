@@ -2,9 +2,9 @@ function MessageGenerater() {
     this.attackVerbs = ['kicked', 'punched', 'chopped', 'slapped', 'tickled', 'poked', 'ambushed',
                         'bit', 'pulverized', 'grieved', 'spanked', 'swatted', 'whacked', 'bashed',
                         'whipped', 'tossed', 'jabbed', 'smacked', 'kissed', 'clawed', 'choked',
-                        'squeezed'];
+                        'squeezed', 'clobbered'];
     this.defeatMessage = ['is PWNED', 'has been OWNed', 'has dropped dead :(', 'cried and ran away', 'has gone to heaven',
-                          'is pulverized!', 'is defeated', 'is GG-ed', 'is sacrificed to appease the game creater',
+                          'is pulverized!', 'is defeated', 'is GG-ed', 'is sacrificed to appease the game creator',
                           'is sacrificed for the glory of Tim Fong'];
 
     var getRandomInt = function (min, max) {
