@@ -244,6 +244,22 @@
             return target;
         }
 
+        function endActorTurn(actorData) {
+            atkActionInProgress = false;
+            battleMessage.hide();
+            battleView.hide();
+            pauseWaitProgress = false;
+            unSelectActor(actorData['playerName']);
+        }
+
+        /**
+         * Setting variables to signify turn end.
+         */
+        function monsterAIendActorTurn(actorData) {
+            endActorTurn(actorData);
+            monsterTurnScheduled = false;
+        }
+
         function monsterAI() {
             if (!atkActionInProgress || !updateArrow || !currentActorIsAMonster() || monsterTurnScheduled) {
                 return;
@@ -264,48 +280,53 @@
                     // TODO: cast special ability or not?
                     var specialAbilityHandler = SpecialAbilityHandler(actorData);
                     var actionToTake = specialAbilityHandler.determineAction();
-                    console.log(actionToTake); // TODO: debug
+                    console.log(actionToTake); // TODO: debug, take this out later
 
-                    // TODO: Case of a normal attack, merge this with other cases
-                    var target = getRandomAlivePlayerData();
-                    var dmg = getCurrentActorDamageOutput();
-                    var targetProfileDom = profileCache[target['playerName']];
-
-                    // Apply damage and have a quick showing
-                    target['aggrHp'] = target['aggrHp'] - dmg;
-                    if (target['aggrHp'] < 0) {
-                        markActorDead(target['playerName']);
-                        target['isDead'] = true;
-                        target['aggrHp'] = 0;
+                    // If there is no action, we have no choice but to end turn.
+                    // This should never happen, however.
+                    if (actionToTake == undefined) {
+                        monsterAIendActorTurn(actorData);
                     }
-                    var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
+                    // Normal Attack
+                    else if (actionToTake['action'] == specialAbilityHandler.NORMAL_ATTACK) {
+                        var target = getRandomAlivePlayerData();
+                        var dmg = getCurrentActorDamageOutput();
+                        var targetProfileDom = profileCache[target['playerName']];
 
-                    // Blink attacked people for visual effect
-                    var blinkTimes = 3;
-                    var blinked = 0;
-                    var blinkLength = 200;
-                    var blinkAnimeInterval = setInterval(function() {
-                        targetProfileDom.fadeOut(blinkLength / 2);
-                        targetProfileDom.fadeIn(blinkLength / 2);
-                        blinked += 1;
-                        if (blinked >= blinkTimes) {
-                            clearInterval(blinkAnimeInterval);
+                        // Apply damage and have a quick showing
+                        target['aggrHp'] = target['aggrHp'] - dmg;
+                        if (target['aggrHp'] < 0) {
+                            markActorDead(target['playerName']);
+                            target['isDead'] = true;
+                            target['aggrHp'] = 0;
                         }
-                    }, blinkLength);
-                    refreshProfile(targetProfileDom, target);
-                    battleMessage.html(atkMsg);
-                    battleMessage.show();
+                        var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
 
-                    setTimeout(function(){
-                        // Set everything back to action ONLY AFTER the atk message is done displaying.
-                        atkActionInProgress = false;
-                        battleMessage.hide();
-                        battleView.hide();
-                        pauseWaitProgress = false;
-                        monsterTurnScheduled = false;
-                        unSelectActor(actorData['playerName']);
-                    }, 3000);
+                        // Blink attacked people for visual effect
+                        var blinkTimes = 3;
+                        var blinked = 0;
+                        var blinkLength = 200;
+                        var blinkAnimeInterval = setInterval(function() {
+                            targetProfileDom.fadeOut(blinkLength / 2);
+                            targetProfileDom.fadeIn(blinkLength / 2);
+                            blinked += 1;
+                            if (blinked >= blinkTimes) {
+                                clearInterval(blinkAnimeInterval);
+                            }
+                        }, blinkLength);
+                        refreshProfile(targetProfileDom, target);
+                        battleMessage.html(atkMsg);
+                        battleMessage.show();
 
+                        setTimeout(function(){
+                            // Set everything back to action ONLY AFTER the atk message is done displaying.
+                            monsterAIendActorTurn(actorData);
+                        }, 3000);
+                    }
+                    else if (actionToTake['action'] == specialAbilityHandler.CAST_SPELL) {
+                        console.log('Well, i would have casted a spell here, will get to it soon');
+                        monsterAIendActorTurn(actorData);
+                    }
                 }, monsterActionLength);
                 monsterTurnScheduled = true;
             }
@@ -356,11 +377,7 @@
             // Allow message up for 3 seconds
             setTimeout(function(){
                 // Set everything back to action ONLY AFTER the atk message is done displaying.
-                atkActionInProgress = false;
-                battleMessage.hide();
-                battleView.hide();
-                pauseWaitProgress = false;
-                unSelectActor(actorData['playerName']);
+                endActorTurn(actorData);
             }, 3000);
         }
 

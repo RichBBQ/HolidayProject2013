@@ -53,6 +53,7 @@ function SpecialAbilityHandler(actorData) {
         var castSpellAction = {};
         castSpellAction['action'] = CAST_SPELL;
         castSpellAction['spellData'] = abilityData;
+        return castSpellAction;
     }
 
     var getRandomInt = function(min, max) {
