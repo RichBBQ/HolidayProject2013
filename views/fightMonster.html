@@ -6,6 +6,7 @@
     <link rel="stylesheet" type="text/css" href="../css/fightMonster.css" />
     <link rel="stylesheet" type="text/css" href="../css/attackTools.css" />
     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script src="../js/SpecialAbilityHandler.js"></script>
     <script src="../js/ArrowPositionCalculator.js"></script>
     <script src="../js/MessageGenerater.js"></script>
     <script src="../js/Utilities.js"></script>
@@ -143,7 +144,6 @@
 
                 // Update the wait bar, but don't go over waitThreshold
                 var waitProgress = currentWaitProgress + deltaForActor;
-
                 if (waitProgress > waitThreshold) {
                     waitProgress = waitThreshold;
                     // this actor can take a turn now, register it in turnQueue
@@ -217,6 +217,33 @@
             return false;
         }
 
+        function getAllAlivePlayers() {
+            var alivePlayers = {};
+            for (var player in playerData) {
+                var isDead = playerData[player]['isDead'];
+                if (isDead === undefined || !isDead) {
+                    alivePlayers[player] = playerData[player];
+                }
+            }
+            return alivePlayers;
+        }
+
+        /**
+         * Helper function used by AI
+         */
+        function getRandomAlivePlayerData() {
+            if (!atLeastOnePlayerAlive()) {
+                return undefined;
+            }
+            var alivePlayers = getAllAlivePlayers();
+            var target = getRandomEntryFromJson(alivePlayers);
+            while (target['isDead']) {
+                // sanity, although this should never happen
+                target = getRandomEntryFromJson(alivePlayers);
+            }
+            return target;
+        }
+
         function monsterAI() {
             if (!atkActionInProgress || !updateArrow || !currentActorIsAMonster() || monsterTurnScheduled) {
                 return;
@@ -234,11 +261,13 @@
                 setTimeout(function(){
                     updateArrow = false;
                     var actorData = getCurrentActorData();
-                    var target = getRandomEntryFromJson(playerData);
-                    // select a non dead target
-                    while (target['isDead']) {
-                        target = getRandomEntryFromJson(playerData);
-                    }
+                    // TODO: cast special ability or not?
+                    var specialAbilityHandler = SpecialAbilityHandler(actorData);
+                    var actionToTake = specialAbilityHandler.determineAction();
+                    console.log(actionToTake); // TODO: debug
+
+                    // TODO: Case of a normal attack, merge this with other cases
+                    var target = getRandomAlivePlayerData();
                     var dmg = getCurrentActorDamageOutput();
                     var targetProfileDom = profileCache[target['playerName']];
 
