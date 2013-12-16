@@ -53,4 +53,61 @@ function MessageGenerater() {
 
         return message;
     }
+
+    this.generateOneTargetSpellMessage = function(caster, target, spellData, spellOutput) {
+        var message = '';
+        message += caster['playerName'];
+        message += ' casted <span style="color:red">' + spellData['abilityName'] + '</span>';
+        message += ' on ' + target['playerName'];
+
+        message += '<br />';
+
+        message += '<span style="color:deepskyblue">' + target['playerName'] + '</span>';
+        message += ' lost ' + '<span style="color:red">' + spellOutput + '</span>';
+        var spellName = spellData['abilityName'];
+        if (spellName.toUpperCase() == 'Insignia of the Rat'.toUpperCase()) {
+            message += ' Power';
+        }
+        else if (spellName.toUpperCase() == 'Insignia of the Turtle'.toUpperCase()) {
+            message += ' Agility';
+        }
+        else {
+            message += ' HP';
+        }
+        return message;
+    }
+
+    this.generateAOESpellMessage = function(caster, targets, spellData, spellOutput) {
+        var message = '';
+        message += caster['playerName'];
+        message += ' casted <span style="color:red">' + spellData['abilityName'] + '</span>';
+
+        message += '<br />';
+
+        message += 'All players suffered ' + spellOutput + ' damages!';
+        return message;
+    }
+
+    this.generateSelfCastSpellMessage = function(caster, target, spellData, spellOutput) {
+        var message = '';
+        message += caster['playerName'];
+        message += ' casted <span style="color:red">' + spellData['abilityName'] + '</span>';
+        message += ' on itself!';
+
+        message += '<br />';
+
+        message += caster['playerName'];
+        message += ' gained ' + '<span style="color:red">' + spellOutput + '</span>';
+        var spellName = spellData['abilityName'];
+        if (spellName.toUpperCase() == 'Haste'.toUpperCase()) {
+            message += ' Agility'
+        }
+        else if (spellName.toUpperCase() == 'Strength'.toUpperCase()) {
+            message += ' Power';
+        }
+        else if (spellName.toUpperCase() == 'Cure'.toUpperCase()) {
+            message += ' HP';
+        }
+        return message;
+    }
 }

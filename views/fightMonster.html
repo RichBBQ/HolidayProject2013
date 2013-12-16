@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" href="../css/attackTools.css" />
     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
     <script src="../js/SpecialAbilityHandler.js"></script>
+    <script src="../js/SpecialAbilityApplierUtils.js"></script>
     <script src="../js/ArrowPositionCalculator.js"></script>
     <script src="../js/MessageGenerater.js"></script>
     <script src="../js/Utilities.js"></script>
@@ -40,6 +41,10 @@
         // Victory condition
         var playersWon = false;
         var monsterWon = false;
+
+        // Attack Animation related constants
+        var blinkTimes = 3;
+        var blinkLength = 200;
 
         function initMaxAgility() {
             var updateMaxAgility = function(actorData) {
@@ -217,6 +222,13 @@
             return false;
         }
 
+        /**
+         * Get all alive players.
+         * {
+         *  playerName: {player data ...}
+         *  ...
+         * }
+         */
         function getAllAlivePlayers() {
             var alivePlayers = {};
             for (var player in playerData) {
@@ -260,6 +272,34 @@
             monsterTurnScheduled = false;
         }
 
+        /**
+         * Fire off the blink animation for targetProfileDom
+         */
+        function blinkProfile(targetProfileDom) {
+            // Blink attacked people for visual effect
+            var blinked = 0;
+            var blinkAnimeInterval = setInterval(function() {
+                targetProfileDom.fadeOut(blinkLength / 2);
+                targetProfileDom.fadeIn(blinkLength / 2);
+                blinked += 1;
+                if (blinked >= blinkTimes) {
+                    clearInterval(blinkAnimeInterval);
+                }
+            }, blinkLength);
+        }
+
+        /**
+         * Helper function to perform necessary operation on a target when it's dead.
+         * If the target is not dead yet, this function does nothing.
+         */
+        function handleTargetDeathCondition(target){
+            if (target['aggrHp'] <= 0) {
+                markActorDead(target['playerName']);
+                target['isDead'] = true;
+                target['aggrHp'] = 0;
+            }
+        }
+
         function monsterAI() {
             if (!atkActionInProgress || !updateArrow || !currentActorIsAMonster() || monsterTurnScheduled) {
                 return;
@@ -277,10 +317,8 @@
                 setTimeout(function(){
                     updateArrow = false;
                     var actorData = getCurrentActorData();
-                    // TODO: cast special ability or not?
                     var specialAbilityHandler = SpecialAbilityHandler(actorData);
                     var actionToTake = specialAbilityHandler.determineAction();
-                    console.log(actionToTake); // TODO: debug, take this out later
 
                     // If there is no action, we have no choice but to end turn.
                     // This should never happen, however.
@@ -295,25 +333,11 @@
 
                         // Apply damage and have a quick showing
                         target['aggrHp'] = target['aggrHp'] - dmg;
-                        if (target['aggrHp'] < 0) {
-                            markActorDead(target['playerName']);
-                            target['isDead'] = true;
-                            target['aggrHp'] = 0;
-                        }
+                        handleTargetDeathCondition(target);
                         var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
 
                         // Blink attacked people for visual effect
-                        var blinkTimes = 3;
-                        var blinked = 0;
-                        var blinkLength = 200;
-                        var blinkAnimeInterval = setInterval(function() {
-                            targetProfileDom.fadeOut(blinkLength / 2);
-                            targetProfileDom.fadeIn(blinkLength / 2);
-                            blinked += 1;
-                            if (blinked >= blinkTimes) {
-                                clearInterval(blinkAnimeInterval);
-                            }
-                        }, blinkLength);
+                        blinkProfile(targetProfileDom);
                         refreshProfile(targetProfileDom, target);
                         battleMessage.html(atkMsg);
                         battleMessage.show();
@@ -325,7 +349,57 @@
                     }
                     else if (actionToTake['action'] == specialAbilityHandler.CAST_SPELL) {
                         console.log('Well, i would have casted a spell here, will get to it soon');
-                        monsterAIendActorTurn(actorData);
+                        var spellData = actionToTake['spellData'];
+                        var minBound = spellData['minBound'];
+                        var maxBound = spellData['maxBound'];
+                        var abilityType = spellData['abilityType'];
+                        var spellOutput = getCurrentActorSpellOutput(minBound, maxBound);
+                        // One (enemy) Target
+                        if (abilityType == 'O') {
+                            var spellTargetData = getRandomAlivePlayerData();
+                            var spellTargetProfileDom = profileCache[spellTargetData['playerName']];
+                            applyOneTargetAbilities(getCurrentActorData(), spellTargetData, spellData, spellOutput);
+                            handleTargetDeathCondition(spellTargetData);
+                            var castOtSpellMessage = messageGenerater.generateOneTargetSpellMessage(getCurrentActorData(), spellTargetData, spellData, spellOutput);
+
+                            // Blink attacked people for visual effect
+                            blinkProfile(spellTargetProfileDom);
+                            refreshProfile(spellTargetProfileDom, spellTargetData);
+                            battleMessage.html(castOtSpellMessage);
+                            battleMessage.show();
+                        }
+
+                        // AOE (enemy targets)
+                        else if (abilityType == 'A') {
+                            var spellTargetsData = getAllAlivePlayers();
+                            applyAOEAbilities(getCurrentActorData(), spellTargetsData, spellData, spellOutput);
+                            var castAoeSpellMessage = messageGenerater.generateAOESpellMessage(getCurrentActorData(), spellTargetsData, spellData, spellOutput);
+                            for (var player in spellTargetsData) {
+                                var playerData = spellTargetsData[player];
+                                var playerProfileDom = profileCache[playerData['playerName']];
+                                handleTargetDeathCondition(playerData);
+                                blinkProfile(playerProfileDom);
+                                refreshProfile(playerProfileDom, playerData);
+                            }
+                            battleMessage.html(castAoeSpellMessage);
+                            battleMessage.show();
+                        }
+
+                        // Self-affecting spells
+                        else if (abilityType == 'S') {
+                            var currentActor = getCurrentActorData();
+                            applySelfCastAbilities( currentActor, currentActor, spellData, spellOutput);
+                            var castSelfSpellMessage = messageGenerater.generateSelfCastSpellMessage(currentActor, currentActor, spellData, spellOutput);
+                            refreshProfile(profileCache[currentActor['playerName']], currentActor);
+                            battleMessage.html(castSelfSpellMessage);
+                            battleMessage.show();
+                        }
+
+                        // Display message and end turn
+                        setTimeout(function(){
+                            // Set everything back to action ONLY AFTER the atk message is done displaying.
+                            monsterAIendActorTurn(actorData);
+                        }, 3000);
                     }
                 }, monsterActionLength);
                 monsterTurnScheduled = true;
@@ -358,17 +432,7 @@
             var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
 
             // Blink attacked people for visual effect
-            var blinkTimes = 3;
-            var blinked = 0;
-            var blinkLength = 200;
-            var blinkAnimeInterval = setInterval(function() {
-                targetProfileDom.fadeOut(blinkLength / 2);
-                targetProfileDom.fadeIn(blinkLength / 2);
-                blinked += 1;
-                if (blinked >= blinkTimes) {
-                    clearInterval(blinkAnimeInterval);
-                }
-            }, blinkLength);
+            blinkProfile(targetProfileDom);
             battleMessage.html(atkMsg);
             battleMessage.show();
             refreshProfile(targetProfileDom, target);
@@ -418,6 +482,20 @@
             var arrowPos = arrowPositionCalculator.getAdjustedPosition();
             var damageOutput = actorData['aggrPow'] - Math.floor((actorData['aggrPow'] * Math.abs(arrowPos - 50)) / 50) ;
             return damageOutput;
+        }
+
+        /**
+         * Helper function to get spell output, given the minBound and maxBound of the spell's effect.
+         */
+        function getCurrentActorSpellOutput(minBound, maxBound) {
+            // Sanity check and handling for bad data.
+            // If maxBound is smaller than minBound, assume minBound is the max spell output.
+            if (minBound > maxBound) {
+                maxBound = minBound;
+            }
+            var arrowPos = arrowPositionCalculator.getAdjustedPosition();
+            var spellOutput = maxBound - Math.floor(((maxBound - minBound) * Math.abs(arrowPos - 50)) / 50);
+            return spellOutput;
         }
 
         function getCurrentActorData() {
