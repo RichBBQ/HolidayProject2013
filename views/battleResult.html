@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results</title>
+    <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+    <script type="text/javascript">
+        function get(name){
+            if(name=(new RegExp('[?&]'+encodeURIComponent(name)+'=([^&]*)')).exec(location.search))
+                return decodeURIComponent(name[1]);
+        }
+
+        $(document).ready(function($){
+            if (get('winner') == 'p') {
+                $('#status').html('Victory').css('color', 'green');
+            }
+            else {
+                $('#status').html('Defeat').css('color', 'red');
+            }
+        });
+    </script>
+</head>
+<body style='background: url("../resource/battle_result.jpg") no-repeat center center fixed; background-size: cover'>
+    <div style="height: 100%; width: 100%; text-align: center">
+        <h1 id="status" style="font-size: 3200%"></h1>
+    </div>
+</body>
+</html>

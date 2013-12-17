@@ -114,6 +114,10 @@ app.get('/fightMonster', function(req, res){
     }
     db.getPlayerData(req.query, renderFightMonster);
 });
+app.get('/battleResult', function(req, res){
+    var battleResultPage = '/views/battleResult.html';
+    res.sendfile(battleResultPage , {root: __dirname});
+});
 
 server.listen(port);
 console.log("Application started on port: " + port);

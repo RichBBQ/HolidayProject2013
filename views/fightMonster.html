@@ -135,7 +135,7 @@
                 }
 
                 var profile = profileCache[actor];
-                var actorAgi = actorData['agi'];
+                var actorAgi = actorData['aggrAgi'];
                 var currentWaitProgress = actorData['waitProgress'];
                 // reset mercury is it's full
                 if (currentWaitProgress >= waitThreshold) {
@@ -328,6 +328,57 @@
             }
         }
 
+        function performNormalAttack(target, actorData) {
+            var dmg = getCurrentActorDamageOutput();
+            var targetProfileDom = profileCache[target['playerName']];
+
+            // Apply damage and have a quick showing
+            target['aggrHp'] = target['aggrHp'] - dmg;
+            handleTargetDeathCondition(target);
+            var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
+
+            // Blink attacked people for visual effect
+            blinkProfile(targetProfileDom);
+            refreshProfile(targetProfileDom, target);
+            battleMessage.html(atkMsg);
+            battleMessage.show();
+        }
+
+        function performOneTargetSpell(spellTargetData, spellData, spellOutput) {
+            var spellTargetProfileDom = profileCache[spellTargetData['playerName']];
+            applyOneTargetAbilities(getCurrentActorData(), spellTargetData, spellData, spellOutput);
+            handleTargetDeathCondition(spellTargetData);
+            var castOtSpellMessage = messageGenerater.generateOneTargetSpellMessage(getCurrentActorData(), spellTargetData, spellData, spellOutput);
+
+            // Blink attacked people for visual effect
+            blinkProfile(spellTargetProfileDom);
+            refreshProfile(spellTargetProfileDom, spellTargetData);
+            battleMessage.html(castOtSpellMessage);
+            battleMessage.show();
+        }
+
+        function performAOESpell(spellTargetsData, spellData, spellOutput) {
+            applyAOEAbilities(getCurrentActorData(), spellTargetsData, spellData, spellOutput);
+            var castAoeSpellMessage = messageGenerater.generateAOESpellMessage(getCurrentActorData(), spellTargetsData, spellData, spellOutput);
+            for (var player in spellTargetsData) {
+                var playerData = spellTargetsData[player];
+                var playerProfileDom = profileCache[playerData['playerName']];
+                handleTargetDeathCondition(playerData);
+                blinkProfile(playerProfileDom);
+                refreshProfile(playerProfileDom, playerData);
+            }
+            battleMessage.html(castAoeSpellMessage);
+            battleMessage.show();
+        }
+
+        function performSelfCastSpell(currentActor, spellData, spellOutput) {
+            applySelfCastAbilities(currentActor, currentActor, spellData, spellOutput);
+            var castSelfSpellMessage = messageGenerater.generateSelfCastSpellMessage(currentActor, currentActor, spellData, spellOutput);
+            refreshProfile(profileCache[currentActor['playerName']], currentActor);
+            battleMessage.html(castSelfSpellMessage);
+            battleMessage.show();
+        }
+
         function monsterAI() {
             if (!atkActionInProgress || !updateArrow || !currentActorIsAMonster() || monsterTurnScheduled) {
                 return;
@@ -338,6 +389,7 @@
                 if (!atLeastOnePlayerAlive()) {
                     monsterTurnScheduled = false;
                     monsterWon = true;
+                    endingBattle();
                     return;
                 }
                 var actorData = getCurrentActorData();
@@ -355,20 +407,7 @@
                     // Normal Attack
                     if (actionToTake['action'] == actionHandler.NORMAL_ATTACK) {
                         var target = getRandomAlivePlayerData();
-                        var dmg = getCurrentActorDamageOutput();
-                        var targetProfileDom = profileCache[target['playerName']];
-
-                        // Apply damage and have a quick showing
-                        target['aggrHp'] = target['aggrHp'] - dmg;
-                        handleTargetDeathCondition(target);
-                        var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
-
-                        // Blink attacked people for visual effect
-                        blinkProfile(targetProfileDom);
-                        refreshProfile(targetProfileDom, target);
-                        battleMessage.html(atkMsg);
-                        battleMessage.show();
-
+                        performNormalAttack(target, actorData);
                     }
                     else if (actionToTake['action'] == actionHandler.CAST_SPELL) {
                         var spellData = actionToTake['spellData'];
@@ -379,42 +418,19 @@
                         // One (enemy) Target
                         if (abilityType == 'O') {
                             var spellTargetData = getRandomAlivePlayerData();
-                            var spellTargetProfileDom = profileCache[spellTargetData['playerName']];
-                            applyOneTargetAbilities(getCurrentActorData(), spellTargetData, spellData, spellOutput);
-                            handleTargetDeathCondition(spellTargetData);
-                            var castOtSpellMessage = messageGenerater.generateOneTargetSpellMessage(getCurrentActorData(), spellTargetData, spellData, spellOutput);
-
-                            // Blink attacked people for visual effect
-                            blinkProfile(spellTargetProfileDom);
-                            refreshProfile(spellTargetProfileDom, spellTargetData);
-                            battleMessage.html(castOtSpellMessage);
-                            battleMessage.show();
+                            performOneTargetSpell(spellTargetData, spellData, spellOutput);
                         }
 
                         // AOE (enemy targets)
                         else if (abilityType == 'A') {
                             var spellTargetsData = getAllAlivePlayers();
-                            applyAOEAbilities(getCurrentActorData(), spellTargetsData, spellData, spellOutput);
-                            var castAoeSpellMessage = messageGenerater.generateAOESpellMessage(getCurrentActorData(), spellTargetsData, spellData, spellOutput);
-                            for (var player in spellTargetsData) {
-                                var playerData = spellTargetsData[player];
-                                var playerProfileDom = profileCache[playerData['playerName']];
-                                handleTargetDeathCondition(playerData);
-                                blinkProfile(playerProfileDom);
-                                refreshProfile(playerProfileDom, playerData);
-                            }
-                            battleMessage.html(castAoeSpellMessage);
-                            battleMessage.show();
+                            performAOESpell(spellTargetsData, spellData, spellOutput);
                         }
 
                         // Self-affecting spells
                         else if (abilityType == 'S') {
                             var currentActor = getCurrentActorData();
-                            applySelfCastAbilities( currentActor, currentActor, spellData, spellOutput);
-                            var castSelfSpellMessage = messageGenerater.generateSelfCastSpellMessage(currentActor, currentActor, spellData, spellOutput);
-                            refreshProfile(profileCache[currentActor['playerName']], currentActor);
-                            battleMessage.html(castSelfSpellMessage);
-                            battleMessage.show();
+                            performSelfCastSpell(currentActor, spellData, spellOutput);
                         }
                     }
 
@@ -422,6 +438,7 @@
                     setTimeout(function(){
                         if (!atLeastOnePlayerAlive()) {
                             monsterWon = true;
+                            endingBattle();
                         }
                         // Set everything back to action ONLY AFTER the atk message is done displaying.
                         monsterAIendActorTurn(actorData);
@@ -447,20 +464,7 @@
             var targetProfileDom = profileCache[target['playerName']];
 
             if (actionToTake['action'] == actionHandler.NORMAL_ATTACK) {
-                var dmg = getCurrentActorDamageOutput();
-                target['aggrHp'] = target['aggrHp'] - dmg;
-                if (target['aggrHp'] <= 0) { // target dead
-                    markActorDead(target['playerName']);
-                    target['isDead'] = true;
-                    target['aggrHp'] = 0;
-                }
-                var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
-
-                // Blink attacked people for visual effect
-                blinkProfile(targetProfileDom);
-                battleMessage.html(atkMsg);
-                battleMessage.show();
-                refreshProfile(targetProfileDom, target);
+                performNormalAttack(target, actorData);
             }
             else if (actionToTake['action'] == actionHandler.CAST_SPELL) {
                 var spellData = actionToTake['spellData'];
@@ -470,22 +474,18 @@
                 var spellOutput = getCurrentActorSpellOutput(minBound, maxBound);
 
                 if (abilityType == 'O') {
-                    applyOneTargetAbilities(actorData, target, spellData, spellOutput);
-                    handleTargetDeathCondition(target);
-                    var castOtSpellMessage = messageGenerater.generateOneTargetSpellMessage(getCurrentActorData(), spellTargetData, spellData, spellOutput);
-
-                    // Blink attacked monster for visual effect
-                    blinkProfile(targetProfileDom);
-                    refreshProfile(targetProfileDom, target);
-                    battleMessage.html(castOtSpellMessage);
-                    battleMessage.show();
+                    performOneTargetSpell(target, spellData, spellOutput);
                 }
                 else if (abilityType == 'A') {
-
-
+                    // Since there's only going to be one monster. By spell design,
+                    // all players' AOE spells are going to be benefitial to players.
+                    // Therefore the casting target of player AOE is always toward players.
+                    var spellTargetsData = getAllAlivePlayers();
+                    performAOESpell(spellTargetsData, spellData, spellOutput);
                 }
                 else if (abilityType == 'S') {
-
+                    var currentActor = getCurrentActorData();
+                    performSelfCastSpell(currentActor, spellData, spellOutput);
                 }
             }
             // TODO: insert attack sound effect here
@@ -496,6 +496,7 @@
                 // Allowing player to savor the victory a bit...
                 if (!atLeastOneMonsterAlive()) {
                     playersWon = true;
+                    endingBattle();
                 }
                 // Set everything back to action ONLY AFTER the atk message is done displaying.
                 endActorTurn(actorData);
@@ -565,6 +566,18 @@
             var jsonObjArr = $.map(jsonObj, function(value, key){ return value; });
             jsonObjArr = shuffle(jsonObjArr);
             return jsonObjArr.shift();
+        }
+
+        function endingBattle() {
+            $('body').fadeOut(3000);
+            setTimeout(function(){
+                if (playersWon) {
+                    window.location = 'battleResult' + document.location.search + '&winner=p';
+                }
+                else if (monsterWon) {
+                    window.location = 'battleResult' + document.location.search + '&winner=m';
+                }
+            }, 3000);
         }
 
         $(document).ready(function($){

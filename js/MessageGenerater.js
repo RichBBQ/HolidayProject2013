@@ -30,6 +30,22 @@ function MessageGenerater() {
         return false;
     }
 
+    var getAOEVerb = function(spellData) {
+        var abilityName = spellData['abilityName'];
+        if (abilityName.toUpperCase() == 'Curall'.toUpperCase()) {
+            return 'gained back';
+        }
+        return 'suffered';
+    }
+
+    var getAOENoun = function(spellData) {
+        var abilityName = spellData['abilityName'];
+        if (abilityName.toUpperCase() == 'Curall'.toUpperCase()) {
+            return 'HP';
+        }
+        return 'damage';
+    }
+
     this.generateAttackMessage = function(attacker, target, damageDealt){
         var message = '';
         if (isCriticalHit(attacker['aggrPow'], damageDealt)) {
@@ -84,7 +100,8 @@ function MessageGenerater() {
 
         message += '<br />';
 
-        message += 'All players suffered ' + spellOutput + ' damage!';
+        message += 'All players ';
+        message += getAOEVerb(spellData) + ' ' + spellOutput + ' ' + getAOENoun(spellData);
         return message;
     }
 
@@ -99,10 +116,10 @@ function MessageGenerater() {
         message += caster['playerName'];
         message += ' gained ' + '<span style="color:red">' + spellOutput + '</span>';
         var spellName = spellData['abilityName'];
-        if (spellName.toUpperCase() == 'Haste'.toUpperCase()) {
+        if (spellName.toUpperCase() == 'Haste'.toUpperCase() || spellName.toUpperCase() == 'Soaring Wings'.toUpperCase()) {
             message += ' Agility'
         }
-        else if (spellName.toUpperCase() == 'Strength'.toUpperCase()) {
+        else if (spellName.toUpperCase() == 'Strength'.toUpperCase() || spellName.toUpperCase() == 'Super Saiyan'.toUpperCase()) {
             message += ' Power';
         }
         else if (spellName.toUpperCase() == 'Cure'.toUpperCase()) {

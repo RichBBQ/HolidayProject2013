@@ -41,13 +41,23 @@ function applyOneTargetAbilities(casterData, targetData, spellData, spellOutput)
  * @param spellOutput
  */
 function applyAOEAbilities(casterData, targetsData, spellData, spellOutput) {
-    // No special case AOE yet. All AOE deal AOE damage.
-    for (var player in targetsData) {
-        var playerData = targetsData[player];
-        playerData['aggrHp'] -= spellOutput;
-        // 0 is the minimum HP.
-        if (playerData['aggrHp'] < 0) {
-            playerData['aggrHp'] = 0;
+    var spellName = spellData['abilityName'];
+    if (spellName.toUpperCase() == 'Curall'.toUpperCase()) {
+        for (var player in targetsData) {
+            var playerData = targetsData[player];
+            playerData['aggrHp'] += spellOutput;
+            // TODO: Apply HP cap when it's in place
+        }
+    }
+    // The default case. Deal damage to all targets.
+    else {
+        for (var player in targetsData) {
+            var playerData = targetsData[player];
+            playerData['aggrHp'] -= spellOutput;
+            // 0 is the minimum HP.
+            if (playerData['aggrHp'] < 0) {
+                playerData['aggrHp'] = 0;
+            }
         }
     }
 }
@@ -69,5 +79,11 @@ function applySelfCastAbilities(casterData, targetData, spellData, spellOutput) 
     }
     else if (spellName.toUpperCase() == 'Cure'.toUpperCase()) {
         targetData['aggrHp'] += spellOutput;
+    }
+    else if (spellName.toUpperCase() == 'Super Saiyan'.toUpperCase()) {
+        targetData['aggrPow'] += spellOutput;
+    }
+    else if (spellName.toUpperCase() == 'Soaring Wings'.toUpperCase()) {
+        targetData['aggrAgi'] += spellOutput;
     }
 }
