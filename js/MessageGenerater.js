@@ -84,7 +84,7 @@ function MessageGenerater() {
 
         message += '<br />';
 
-        message += 'All players suffered ' + spellOutput + ' damages!';
+        message += 'All players suffered ' + spellOutput + ' damage!';
         return message;
     }
 
@@ -108,6 +108,19 @@ function MessageGenerater() {
         else if (spellName.toUpperCase() == 'Cure'.toUpperCase()) {
             message += ' HP';
         }
+        return message;
+    }
+
+    this.generateSpellCastingMessage = function(caster, spellData) {
+        var message = '';
+        message += caster['playerName'] + ' is casting ';
+        message += '<span style="color:red">' + spellData['abilityName'] + '</span>';
+        return message;
+    }
+
+    this.generateAttackingMessage = function(attacker) {
+        var message = '';
+        message += '<span style="color:green">' + attacker['playerName'] + '</span> is attacking';
         return message;
     }
 }

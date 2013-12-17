@@ -176,6 +176,16 @@
             profileCache[actorToTakeTurn].removeClass('playerProfileColoring');
             profileCache[actorToTakeTurn].removeClass('monsterProfileColoring');
 
+            // Determine the action to take here and store them into actorData.
+            // The action saved here will be picked up by either monsterAI or
+            // user action handler and used to carry out action when the player
+            // is done interacting with action bar.
+            var actionHandler = SpecialAbilityHandler(actorData);
+            var actionToTake = actionHandler.determineAction();
+            actorData['actionHandler'] = actionHandler;
+            actorData['actionToTake'] = actionToTake;
+            showActionToTakeMessage(actorData, actionToTake, actionHandler);
+
             arrowPositionCalculator.reset();
             updateArrow = true;
             atkActionInProgress = true;
@@ -189,7 +199,6 @@
             profileDom.find('.hp').html(actorData['aggrHp']);
             profileDom.find('.agi').html(actorData['aggrAgi']);
             profileDom.find('.profilePic').attr('src', actorData['playerPicLink']);
-
         }
 
         function attackAction() {
@@ -300,6 +309,25 @@
             }
         }
 
+        function showActionToTakeMessage(actorData, actionToTake, handler) {
+            if (actionToTake == undefined) {
+                return;
+            }
+
+            var message = '';
+            if (actionToTake['action'] == handler.NORMAL_ATTACK) {
+                message = messageGenerater.generateAttackingMessage(actorData);
+            }
+            else if (actionToTake['action'] == handler.CAST_SPELL) {
+                message = messageGenerater.generateSpellCastingMessage(actorData, actionToTake['spellData']);
+            }
+
+            if (message) {
+                battleMessage.html(message);
+                battleMessage.show();
+            }
+        }
+
         function monsterAI() {
             if (!atkActionInProgress || !updateArrow || !currentActorIsAMonster() || monsterTurnScheduled) {
                 return;
@@ -312,21 +340,20 @@
                     monsterWon = true;
                     return;
                 }
+                var actorData = getCurrentActorData();
+                var actionHandler = actorData['actionHandler'];
+                var actionToTake = actorData['actionToTake'];
+                // If there is no action, we have no choice but to end turn.
+                // This should never happen, however.
+                if (actionToTake == undefined) {
+                    monsterAIendActorTurn(actorData);
+                }
 
                 var monsterActionLength = getRandomInt(2000, 6500);
                 setTimeout(function(){
                     updateArrow = false;
-                    var actorData = getCurrentActorData();
-                    var specialAbilityHandler = SpecialAbilityHandler(actorData);
-                    var actionToTake = specialAbilityHandler.determineAction();
-
-                    // If there is no action, we have no choice but to end turn.
-                    // This should never happen, however.
-                    if (actionToTake == undefined) {
-                        monsterAIendActorTurn(actorData);
-                    }
                     // Normal Attack
-                    else if (actionToTake['action'] == specialAbilityHandler.NORMAL_ATTACK) {
+                    if (actionToTake['action'] == actionHandler.NORMAL_ATTACK) {
                         var target = getRandomAlivePlayerData();
                         var dmg = getCurrentActorDamageOutput();
                         var targetProfileDom = profileCache[target['playerName']];
@@ -342,13 +369,8 @@
                         battleMessage.html(atkMsg);
                         battleMessage.show();
 
-                        setTimeout(function(){
-                            // Set everything back to action ONLY AFTER the atk message is done displaying.
-                            monsterAIendActorTurn(actorData);
-                        }, 3000);
                     }
-                    else if (actionToTake['action'] == specialAbilityHandler.CAST_SPELL) {
-                        console.log('Well, i would have casted a spell here, will get to it soon');
+                    else if (actionToTake['action'] == actionHandler.CAST_SPELL) {
                         var spellData = actionToTake['spellData'];
                         var minBound = spellData['minBound'];
                         var maxBound = spellData['maxBound'];
@@ -394,13 +416,16 @@
                             battleMessage.html(castSelfSpellMessage);
                             battleMessage.show();
                         }
-
-                        // Display message and end turn
-                        setTimeout(function(){
-                            // Set everything back to action ONLY AFTER the atk message is done displaying.
-                            monsterAIendActorTurn(actorData);
-                        }, 3000);
                     }
+
+                    // Let message display for 3 secs then end turn.
+                    setTimeout(function(){
+                        if (!atLeastOnePlayerAlive()) {
+                            monsterWon = true;
+                        }
+                        // Set everything back to action ONLY AFTER the atk message is done displaying.
+                        monsterAIendActorTurn(actorData);
+                    }, 3000);
                 }, monsterActionLength);
                 monsterTurnScheduled = true;
             }
@@ -413,33 +438,65 @@
             }
             updateArrow = false;
             var actorData = getCurrentActorData();
+            var actionHandler = actorData['actionHandler'];
+            var actionToTake = actorData['actionToTake'];
+
             // by reference. target points to the actual json object in monsterData.
             // updating "target" object will have direct effect on what's stored in monsterData.
             var target = getRandomEntryFromJson(monsterData);
-            var dmg = getCurrentActorDamageOutput();
             var targetProfileDom = profileCache[target['playerName']];
 
-            // Apply damage and have a quick showing
-            target['aggrHp'] = target['aggrHp'] - dmg;
-            if (target['aggrHp'] <= 0) { // target dead
-                markActorDead(target['playerName']);
-                target['isDead'] = true;
-                target['aggrHp'] = 0;
-                if (!atLeastOneMonsterAlive()) {
-                     playersWon = true;
+            if (actionToTake['action'] == actionHandler.NORMAL_ATTACK) {
+                var dmg = getCurrentActorDamageOutput();
+                target['aggrHp'] = target['aggrHp'] - dmg;
+                if (target['aggrHp'] <= 0) { // target dead
+                    markActorDead(target['playerName']);
+                    target['isDead'] = true;
+                    target['aggrHp'] = 0;
+                }
+                var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
+
+                // Blink attacked people for visual effect
+                blinkProfile(targetProfileDom);
+                battleMessage.html(atkMsg);
+                battleMessage.show();
+                refreshProfile(targetProfileDom, target);
+            }
+            else if (actionToTake['action'] == actionHandler.CAST_SPELL) {
+                var spellData = actionToTake['spellData'];
+                var minBound = spellData['minBound'];
+                var maxBound = spellData['maxBound'];
+                var abilityType = spellData['abilityType'];
+                var spellOutput = getCurrentActorSpellOutput(minBound, maxBound);
+
+                if (abilityType == 'O') {
+                    applyOneTargetAbilities(actorData, target, spellData, spellOutput);
+                    handleTargetDeathCondition(target);
+                    var castOtSpellMessage = messageGenerater.generateOneTargetSpellMessage(getCurrentActorData(), spellTargetData, spellData, spellOutput);
+
+                    // Blink attacked monster for visual effect
+                    blinkProfile(targetProfileDom);
+                    refreshProfile(targetProfileDom, target);
+                    battleMessage.html(castOtSpellMessage);
+                    battleMessage.show();
+                }
+                else if (abilityType == 'A') {
+
+
+                }
+                else if (abilityType == 'S') {
+
                 }
             }
-            var atkMsg = messageGenerater.generateAttackMessage(actorData, target, dmg);
-
-            // Blink attacked people for visual effect
-            blinkProfile(targetProfileDom);
-            battleMessage.html(atkMsg);
-            battleMessage.show();
-            refreshProfile(targetProfileDom, target);
             // TODO: insert attack sound effect here
 
             // Allow message up for 3 seconds
             setTimeout(function(){
+                // Declare player victor after message has shown.
+                // Allowing player to savor the victory a bit...
+                if (!atLeastOneMonsterAlive()) {
+                    playersWon = true;
+                }
                 // Set everything back to action ONLY AFTER the atk message is done displaying.
                 endActorTurn(actorData);
             }, 3000);
