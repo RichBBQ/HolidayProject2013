@@ -89,6 +89,30 @@ function calculateAndInsertAggregatedAttrs(playersData) {
     }
 }
 
+// Assumes calculateAndInsertAggregatedAttrs has already been called
+function applyMonsterTypeBonusForPlayers(playersData, monsterData) {
+    var bonusType = 'b'; // bonus prefix
+    // For now we will only have one monster... so this is okay...
+    for (var m in monsterData) {
+        if (monsterData[m]['monsterType']) {
+            bonusType += monsterData[m]['monsterType'].toUpperCase();
+        }
+        else {
+            // monster doesn't have a type. No go... just return, nothing to see here.
+            return;
+        }
+    }
+
+    for (var p in playersData) {
+        var playerData = playersData[p];
+        if (playerData[bonusType] != undefined && playerData[bonusType] > 0) {
+            playerData['aggrPow'] = Math.round( (playerData['aggrPow'] * (100 + playerData[bonusType])) / 100);
+            playerData['aggrHp'] = Math.round( (playerData['aggrHp'] * (100 + playerData[bonusType])) / 100);
+            playerData['aggrAgi'] = Math.round( (playerData['aggrAgi'] * (100 + playerData[bonusType])) / 100);
+        }
+    }
+}
+
 module.exports = {
     testInsertIp: function(req, res) {
         object_to_insert = { 'ip': req.connection.remoteAddress, 'ts': new Date() };
@@ -165,12 +189,13 @@ module.exports = {
                     }
                     calculateAndInsertAggregatedAttrs(playerDataJson);
                     calculateAndInsertAggregatedAttrs(monsterDataJson);
+                    applyMonsterTypeBonusForPlayers(playerDataJson, monsterDataJson);
                     callback(playerDataJson, monsterDataJson);
                 });
             });
         }
         else { // Nothing to query
-            callback(playerDataJson);
+            callback(playerDataJson, monsterDataJson);
         }
     }
 }
