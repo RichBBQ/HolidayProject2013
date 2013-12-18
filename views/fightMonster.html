@@ -66,6 +66,17 @@
             }
         }
 
+        function initMaxHealth() {
+            for (var actor in playerData) {
+                var actorData = playerData[actor];
+                actorData['maxHealth'] = actorData['aggrHp'];
+            }
+            for (var actor in monsterData) {
+                var actorData = monsterData[actor];
+                actorData['maxHealth'] = actorData['aggrHp'];
+            }
+        }
+
         function initWaitProgress() {
             var startingProgress = 0; // TODO: reset back to zero, set high for testing purpose
             for (var actor in playerData) {
@@ -196,7 +207,7 @@
             profileDom.find('.actorName').html(actorData['playerName']);
             profileDom.find('.level').html(actorData['level']);
             profileDom.find('.pow').html(actorData['aggrPow']);
-            profileDom.find('.hp').html(actorData['aggrHp']);
+            profileDom.find('.hp').html(actorData['aggrHp'] + '/' + actorData['maxHealth']);
             profileDom.find('.agi').html(actorData['aggrAgi']);
             profileDom.find('.profilePic').attr('src', actorData['playerPicLink']);
         }
@@ -582,6 +593,7 @@
 
         $(document).ready(function($){
             initMaxAgility();
+            initMaxHealth();
             initWaitProgress();
             initProfileCache();
             initBattleView();
@@ -619,7 +631,7 @@
                         <div class="attr">Power: </div><div class="attrVal pow">{{this.aggrPow}}</div>
                     </div>
                     <div class="attributeContainer">
-                        <span class="attr">HP: </span><span class="attrVal hp">{{this.aggrHp}}</span>
+                        <span class="attr">HP: </span><span class="attrVal hp">{{this.aggrHp}}/{{this.aggrHp}}</span>
                     </div>
                     <div class="attributeContainer">
                         <span class="attr">Agility: </span><span class="attrVal agi">{{this.aggrAgi}}</span>
@@ -661,7 +673,7 @@
                     <div class="attr">Power: </div><div class="attrVal pow">{{this.aggrPow}}</div>
                 </div>
                 <div class="attributeContainer">
-                    <span class="attr">HP: </span><span class="attrVal hp">{{this.aggrHp}}</span>
+                    <span class="attr">HP: </span><span class="attrVal hp">{{this.aggrHp}}/{{this.aggrHp}}</span>
                 </div>
                 <div class="attributeContainer">
                     <span class="attr">Agility: </span><span class="attrVal agi">{{this.aggrAgi}}</span>

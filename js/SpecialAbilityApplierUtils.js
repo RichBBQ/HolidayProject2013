@@ -46,7 +46,10 @@ function applyAOEAbilities(casterData, targetsData, spellData, spellOutput) {
         for (var player in targetsData) {
             var playerData = targetsData[player];
             playerData['aggrHp'] += spellOutput;
-            // TODO: Apply HP cap when it's in place
+            // prevent over healing. cap at maxHealth
+            if (playerData['aggrHp'] > playerData['maxHealth']) {
+                playerData['aggrHp'] = playerData['maxHealth'];
+            }
         }
     }
     // The default case. Deal damage to all targets.
@@ -79,6 +82,10 @@ function applySelfCastAbilities(casterData, targetData, spellData, spellOutput) 
     }
     else if (spellName.toUpperCase() == 'Cure'.toUpperCase()) {
         targetData['aggrHp'] += spellOutput;
+        // prevent over healing. cap at maxHealth
+        if (playerData['aggrHp'] > playerData['maxHealth']) {
+            playerData['aggrHp'] = playerData['maxHealth'];
+        }
     }
     else if (spellName.toUpperCase() == 'Super Saiyan'.toUpperCase()) {
         targetData['aggrPow'] += spellOutput;
