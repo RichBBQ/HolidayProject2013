@@ -14,6 +14,7 @@
     <script type="text/javascript">
         var playerData = JSON.parse('{{{json playerData}}}');
         var monsterData = JSON.parse('{{{json monsterData}}}');
+        var soundEffectMap = JSON.parse('{{{json soundEffectMap}}}');
         var refreshPeriod = 30; // refresh every 30ms
         var shortestWaitLength = 5000; // 5 sec
         var waitThreshold = 220;
@@ -45,6 +46,8 @@
         // Attack Animation related constants
         var blinkTimes = 3;
         var blinkLength = 200;
+
+        var audioCache = {};
 
         function initMaxAgility() {
             var updateMaxAgility = function(actorData) {
@@ -412,13 +415,14 @@
                     monsterAIendActorTurn(actorData);
                 }
 
-                var monsterActionLength = getRandomInt(2000, 6500);
+                var monsterActionLength = getRandomInt(1000, 4500);
                 setTimeout(function(){
                     updateArrow = false;
                     // Normal Attack
                     if (actionToTake['action'] == actionHandler.NORMAL_ATTACK) {
                         var target = getRandomAlivePlayerData();
                         performNormalAttack(target, actorData);
+                        playSoundEffect('Default');
                     }
                     else if (actionToTake['action'] == actionHandler.CAST_SPELL) {
                         var spellData = actionToTake['spellData'];
@@ -443,6 +447,7 @@
                             var currentActor = getCurrentActorData();
                             performSelfCastSpell(currentActor, spellData, spellOutput);
                         }
+                        playSoundEffect(spellData['abilityName']);
                     }
 
                     // Let message display for 3 secs then end turn.
@@ -476,6 +481,7 @@
 
             if (actionToTake['action'] == actionHandler.NORMAL_ATTACK) {
                 performNormalAttack(target, actorData);
+                playSoundEffect('Default');
             }
             else if (actionToTake['action'] == actionHandler.CAST_SPELL) {
                 var spellData = actionToTake['spellData'];
@@ -498,8 +504,8 @@
                     var currentActor = getCurrentActorData();
                     performSelfCastSpell(currentActor, spellData, spellOutput);
                 }
+                playSoundEffect(spellData['abilityName']);
             }
-            // TODO: insert attack sound effect here
 
             // Allow message up for 3 seconds
             setTimeout(function(){
@@ -615,6 +621,20 @@
             setInterval(attackAction, refreshPeriod);
             setInterval(monsterAI, 2000); // monster AI can run less often
         });
+
+        function playSoundEffect(effectName)
+        {
+            var sound = undefined;
+            if (audioCache[effectName]) {
+                sound = audioCache[effectName];
+            }
+            else {
+                sound = new Audio(soundEffectMap[effectName]);
+                audioCache[effectName] = sound;
+            }
+            sound.play();
+        }
+
     </script>
 </head>
 <body>

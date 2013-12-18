@@ -2,7 +2,7 @@ function MessageGenerater() {
     this.attackVerbs = ['kicked', 'punched', 'chopped', 'slapped', 'tickled', 'poked', 'ambushed',
                         'bit', 'spanked', 'swatted', 'whacked', 'bashed', 'whipped', 'tossed', 'jabbed',
                         'smacked', 'kissed', 'clawed', 'choked', 'squeezed', 'clobbered', 'licked','hi-fived',
-                        'jump kicked','tackled','kamehameha-ed','slobbered over','made eye contact with',
+                        'jump kicked','tackled','slobbered over','made eye contact with',
                         'jumped','shot','chatted with','undercut','grinned at','headbutted'];
 
     this.defeatMessage = ['has been PWNED', 'got OWNed', 'has dropped dead :(', 'cried and ran away',
@@ -109,7 +109,7 @@ function MessageGenerater() {
         var message = '';
         message += caster['playerName'];
         message += ' casted <span style="color:red">' + spellData['abilityName'] + '</span>';
-        message += ' on itself!';
+        message += ' on self!';
 
         message += '<br />';
 

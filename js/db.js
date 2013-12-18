@@ -1,6 +1,3 @@
-/**
- * Created by RichBB on 12/11/13.
- */
 // Setting up Mongodb
 var mongo;
 if (process.env.VCAP_SERVICES) {
@@ -88,6 +85,38 @@ function calculateAndInsertAggregatedAttrs(playersData) {
         player['bL'] = parseInt(player['bL']);
     }
 }
+
+var soundEffectMappings = {
+    'Default': 'resource/audio/Default.mp3',
+    'Haste': 'resource/audio/Haste.mp3',
+    'Strength': 'resource/audio/Strength.mp3',
+    'Cure': 'resource/audio/Cure.mp3',
+    'Embers': 'resource/audio/Embers.mp3',
+    'Fireblast': 'resource/audio/Fireblast.wav',
+    'Firestorm': 'resource/audio/Firestorm.mp3',
+    'Meteorshower': 'resource/audio/Meteorshower.mp3',
+    'Chills': 'resource/audio/Chills.wav',
+    'Iceblast': 'resource/audio/Fireblast.mp3',
+    'Hailstorm': 'resource/audio/Hailstorm.mp3',
+    'Blizzard': 'resource/audio/Blizzard.mp3',
+    'Sparks': 'resource/audio/Sparks.mp3',
+    'Electricshock': 'resource/audio/Electricshock.mp3',
+    'Thunderstorm': 'resource/audio/Thunderstorm.mp3',
+    'Fields of Lightning': 'resource/audio/Fields of Lightning.mp3',
+    'Sharp Breeze': 'resource/audio/Razor Leaf.wav',
+    'Razor Leaf': 'resource/audio/Razor Leaf.wav',
+    'Earthquake': 'resource/audio/Earthquake.mp3',
+    'Tornado Cluster': 'resource/audio/Tornado Cluster.wav',
+    'Insignia of the Rat': 'resource/audio/Insignia of the Rat.mp3',
+    'Insignia of the Turtle': 'resource/audio/Insignia of the Turtle.mp3',
+    'Sonic Blast': 'resource/audio/Sonic Blast.wav',
+    'Chords of Melancholy': 'resource/audio/Chords of Melancholy.mp3',
+    'Curall': 'resource/audio/Cure.mp3',
+    'Super Saiyan': 'resource/audio/Super Saiyan.mp3',
+    'Final Hour': 'resource/audio/Final Hour.mp3',
+    'Kameha': 'resource/audio/Kameha.mp3',
+    'Soaring Wings': 'resource/audio/Soaring Wings.mp3'
+};
 
 // Assumes calculateAndInsertAggregatedAttrs has already been called
 function applyMonsterTypeBonusForPlayers(playersData, monsterData) {
@@ -197,6 +226,9 @@ module.exports = {
         else { // Nothing to query
             callback(playerDataJson, monsterDataJson);
         }
+    },
+    getSoundEffectMappingData: function() {
+        return soundEffectMappings;
     }
 }
 

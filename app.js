@@ -104,10 +104,12 @@ app.get('/battleSplash', function(req, res){
     db.getPlayerData(req.query, renderBattleSplash)
 });
 app.get('/fightMonster', function(req, res){
+    var soundEffectMap = db.getSoundEffectMappingData();
     var renderFightMonster = function(playerData, monsterData) {
         var renderParam = {
             playerData: playerData,
             monsterData: monsterData,
+            soundEffectMap: soundEffectMap,
             layout: 'fightMonster.html'
         };
         res.render('fightMonster', renderParam);
