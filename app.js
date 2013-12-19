@@ -105,11 +105,12 @@ app.get('/battleSplash', function(req, res){
 });
 app.get('/fightMonster', function(req, res){
     var soundEffectMap = db.getSoundEffectMappingData();
-    var renderFightMonster = function(playerData, monsterData) {
+    var renderFightMonster = function(playerData, monsterData, backgroundSoundData) {
         var renderParam = {
             playerData: playerData,
             monsterData: monsterData,
             soundEffectMap: soundEffectMap,
+            backgroundSoundData: backgroundSoundData,
             layout: 'fightMonster.html'
         };
         res.render('fightMonster', renderParam);

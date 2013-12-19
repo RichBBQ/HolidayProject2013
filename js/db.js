@@ -67,6 +67,7 @@ function calculateAndInsertAggregatedAttrs(playersData) {
         var aggrAgi = baseAgi + bonusAgi;
 
         // Stuff data back
+        player['level'] = level;
         player['pow'] = basePow;
         player['hp'] = baseHp;
         player['agi'] = baseAgi;
@@ -117,6 +118,22 @@ var soundEffectMappings = {
     'Kameha': 'resource/audio/Kameha.mp3',
     'Soaring Wings': 'resource/audio/Soaring Wings.mp3'
 };
+
+var backgroundSongMappings = {
+    1: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight1.mp3', length: 93},
+    2: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight2.mp3', length: 248},
+    3: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight3.mp3', length: 140},
+    4: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight4.mp3', length: 123},
+    5: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight5.mp3', length: 321},
+    6: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight6.mp3', length: 251},
+    7: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight7.MP3', length: 157},
+    8: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight8.mp3', length: 147},
+    9: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight9.mp3', length: 141},
+    10: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight10.mp3', length: 248},
+    11: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight11.mp3', length: 173},
+    12: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight12.mp3', length: 175},
+    13: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight13.mp3', length: 205}
+}
 
 // Assumes calculateAndInsertAggregatedAttrs has already been called
 function applyMonsterTypeBonusForPlayers(playersData, monsterData) {
@@ -204,6 +221,7 @@ module.exports = {
         }
         var playerDataJson = {};
         var monsterDataJson = {};
+        var backgroundSoundData = {};
         if (toQuery.length > 0) {
             playerCollection.find({playerName: {$in: toQuery}}, {}, function(err, cursor){
                 cursor.toArray(function(tooArrayErr, items){
@@ -212,19 +230,23 @@ module.exports = {
                         if (actorData.actorType == "p") {
                             playerDataJson[actorData.playerName] = actorData;
                         }
-                        else {
+                        else { // monster
                             monsterDataJson[actorData.playerName] = actorData;
+                            // background music determined by monster level
+                            if (actorData['level'] != undefined) {
+                                backgroundSoundData = backgroundSongMappings[actorData['level']];
+                            }
                         }
                     }
                     calculateAndInsertAggregatedAttrs(playerDataJson);
                     calculateAndInsertAggregatedAttrs(monsterDataJson);
                     applyMonsterTypeBonusForPlayers(playerDataJson, monsterDataJson);
-                    callback(playerDataJson, monsterDataJson);
+                    callback(playerDataJson, monsterDataJson, backgroundSoundData);
                 });
             });
         }
         else { // Nothing to query
-            callback(playerDataJson, monsterDataJson);
+            callback(playerDataJson, monsterDataJson, backgroundSoundData);
         }
     },
     getSoundEffectMappingData: function() {

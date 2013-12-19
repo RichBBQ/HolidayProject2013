@@ -635,9 +635,18 @@
             sound.play();
         }
 
+        function backgroundMusic() {
+            var backGroundSoundData = JSON.parse('{{{json backgroundSoundData}}}');
+            var sound = new Audio(backGroundSoundData['link']);
+            sound.play();
+            setInterval(function() {
+                sound.play();
+            }, backGroundSoundData['length'] * 1000);
+        }
+
     </script>
 </head>
-<body>
+<body onload="backgroundMusic()">
     <div class="playerProfilesContainer">
         <div class="playerListContainer">
         {{#each playerData}}
