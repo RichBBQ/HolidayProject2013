@@ -40,6 +40,8 @@ mongodb.connect(mongourl, function(err, conn) {
     });
 });
 
+var whiteSpaceRegex = new RegExp(' ', 'g');
+
 // Private helper functions
 function calculateAndInsertAggregatedAttrs(playersData) {
     for (var p in playersData) {
@@ -47,6 +49,7 @@ function calculateAndInsertAggregatedAttrs(playersData) {
         if (!playersData.hasOwnProperty(p)) {
             continue;
         }
+
         var player = playersData[p];
         var level = parseInt(player['level']);
         var basePow = parseInt(player['pow'])
@@ -84,6 +87,8 @@ function calculateAndInsertAggregatedAttrs(playersData) {
         player['bY'] = parseInt(player['bY']);
         player['bG'] = parseInt(player['bG']);
         player['bL'] = parseInt(player['bL']);
+
+        player['playerId'] = player['playerName'].replace(whiteSpaceRegex, '');
     }
 }
 

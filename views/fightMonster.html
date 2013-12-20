@@ -98,10 +98,10 @@
          */
         function initProfileCache() {
             for (var actor in playerData) {
-                profileCache[actor] = $('#'+actor);
+                profileCache[actor] = $('#'+ playerData[actor]['playerId']);
             }
             for (var actor in monsterData) {
-                profileCache[actor] = $('#'+actor);
+                profileCache[actor] = $('#' + monsterData[actor]['playerId']);
             }
         }
 
@@ -650,7 +650,7 @@
     <div class="playerProfilesContainer">
         <div class="playerListContainer">
         {{#each playerData}}
-            <div class="player playerProfileColoring" id="{{this.playerName}}">
+            <div class="player playerProfileColoring" id="{{this.playerId}}">
                 <div class="attributes">
                     <div class="name"><span class="actorName">{{this.playerName}}</span></div>
                     <div class="attributeContainer">
@@ -692,7 +692,7 @@
 
     <div class="monsterProfilesContainer">
     {{#each monsterData}}
-        <div class="monster monsterProfileColoring" id="{{this.playerName}}">
+        <div class="monster monsterProfileColoring" id="{{this.playerId}}">
             <div class="attributes">
                 <div class="name"><span class="actorName">{{this.playerName}}</span></div>
                 <div class="attributeContainer">
