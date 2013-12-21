@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Player</title>
+</head>
+<body>
+<form action="updatePlayerData" method="post">
+    Player Name: <input type="text" name="playerName" value="{{playerData.playerName}}"><br />
+    Player Pic link: <input type="text" name="playerPicLink" value="{{playerData.playerPicLink}}"><br />
+    Level: <input type="text" name="level" value="{{playerData.level}}"><br />
+    Base Power: <input type="text" name="pow" value="{{playerData.pow}}"><br />
+    Base HP: <input type="text" name="hp" value="{{playerData.hp}}"><br />
+    Base Agility: <input type="text" name="agi" value="{{playerData.agi}}"><br />
+    Bonus Power: <input type="text" name="bpow" value="{{playerData.bpow}}"><br />
+    Bonus HP: <input type="text" name="bhp" value="{{playerData.bhp}}"><br />
+    Bonus Agility: <input type="text" name="bagi" value="{{playerData.bagi}}"><br />
+    Bonus% Red: <input type="text" name="bR" value="{{playerData.bR}}"><br />
+    Bonus% Blue: <input type="text" name="bB" value="{{playerData.bB}}"><br />
+    Bonus% Yellow: <input type="text" name="bY" value="{{playerData.bY}}"><br />
+    Bonus% Green: <input type="text" name="bG" value="{{playerData.bG}}"><br />
+    Bonus% Legacy: <input type="text" name="bL" value="{{playerData.bL}}"><br />
+    SA1: <input type="text" name="sa1" value="{{playerData.sa1}}"><br />
+    SA2: <input type="text" name="sa2" value="{{playerData.sa2}}"><br />
+    SA3: <input type="text" name="sa3" value="{{playerData.sa3}}"><br />
+    <input type="hidden" name="actorType" value="p">
+    <input type="submit" value="Submit">
+</form>
+</body>
+</html>

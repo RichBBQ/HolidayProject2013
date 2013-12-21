@@ -125,19 +125,19 @@ var soundEffectMappings = {
 };
 
 var backgroundSongMappings = {
-    1: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight1.mp3', length: 92},
-    2: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight2.mp3', length: 247},
-    3: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight3.mp3', length: 247},
-    4: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight4.mp3', length: 250},
-    5: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight5.mp3', length: 174},
-    6: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight6.mp3', length: 156},
-    7: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight7.MP3', length: 146},
-    8: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight8.mp3', length: 139},
-    9: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight9.mp3', length: 320},
-    10: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight10.mp3', length: 204},
-    11: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight11.mp3', length: 140},
-    12: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight12.mp3', length: 174},
-    13: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight13.mp3', length: 122}
+    1: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight1.mp3', length: 93},
+    2: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight2.mp3', length: 248},
+    3: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight3.mp3', length: 248},
+    4: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight4.mp3', length: 251},
+    5: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight5.mp3', length: 175},
+    6: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight6.mp3', length: 157},
+    7: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight7.MP3', length: 147},
+    8: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight8.mp3', length: 140},
+    9: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight9.mp3', length: 321},
+    10: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight10.mp3', length: 205},
+    11: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight11.mp3', length: 141},
+    12: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight12.mp3', length: 175},
+    13: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight13.mp3', length: 123}
 }
 
 // Assumes calculateAndInsertAggregatedAttrs has already been called
@@ -194,6 +194,31 @@ module.exports = {
             else {
                 console.log("inserted " + JSON.stringify(playerData));
             }
+        });
+    },
+    updatePlayerData: function(newPlayerData){
+        if (!newPlayerData.hasOwnProperty('playerName') || !newPlayerData['playerName']) {
+            return;
+        }
+        playerCollection.update({playerName: newPlayerData['playerName']}, newPlayerData, {}, function(err){
+            if (err) {
+                console.log('Failed to update data for ' + newPlayerData['playerName']);
+                console.log(err);
+            }
+        });
+    },
+    getActorDataByName: function(queryData, callback) {
+        var actorData = {};
+        if (!queryData.hasOwnProperty('playerName') || !queryData['playerName']) {
+            callback(actorData);
+        }
+        playerCollection.find({playerName: queryData['playerName']}, {}, function(err, cursor) {
+            cursor.toArray(function(toArrErr, items){
+                for (var i = 0; i < items.length; i++){
+                    actorData = items[i];
+                }
+                callback(actorData);
+            });
         });
     },
     getAllPlayerDataAsString: function(callback) {

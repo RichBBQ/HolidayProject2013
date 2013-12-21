@@ -8,7 +8,7 @@ function MessageGenerater() {
     this.defeatMessage = ['has been PWNED', 'got OWNed', 'has dropped dead :(', 'cried and ran away',
                           'has been vanquished', 'has tasted defeat!', 'has been defeated', 'got GG-ed',
                           'has fallen','was too weak','couldn’t take the challenge','didn’t train hard enough',
-                          'fought valiantly. Not.','has failed and accomplished nothing','has been eliminated, as expected.',
+                          'fought valiantly...','has failed and accomplished nothing','has been eliminated, as expected.',
                           'could not hold it together','is no longer with us'];
 
     var getRandomInt = function (min, max) {

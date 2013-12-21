@@ -75,6 +75,25 @@ app.post('/deleteActor', function(req, res) {
     res.writeHead(301, {Location: '/listAll'});
     res.end();
 });
+app.get('/loadPlayerByNameForUpdate', function(req, res) {
+    var insertPlayerForm = '/views/loadPlayerByNameForUpdate.html';
+    res.sendfile(insertPlayerForm, {root: __dirname});
+});
+app.get('/updatePlayerData', function(req, res) {
+    var renderUpdatePlayerDataForm = function(playerData) {
+        var renderParam = {
+            playerData: playerData,
+            layout: 'updatePlayerData.html'
+        };
+        res.render('updatePlayerData', renderParam);
+    }
+    db.getActorDataByName(req.query, renderUpdatePlayerDataForm);
+});
+app.post('/updatePlayerData', function(req, res) {
+    db.updatePlayerData(req.body);
+    res.writeHead(301, {Location: '/listAll'});
+    res.end();
+});
 app.get('/listAll', function(req, res) {
     var dumpPlayerData = function(playerData){
         res.writeHead(200);
