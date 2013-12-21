@@ -125,19 +125,19 @@ var soundEffectMappings = {
 };
 
 var backgroundSongMappings = {
-    1: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight1.mp3', length: 93},
-    2: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight2.mp3', length: 248},
-    3: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight3.mp3', length: 140},
-    4: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight4.mp3', length: 123},
-    5: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight5.mp3', length: 321},
-    6: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight6.mp3', length: 251},
-    7: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight7.MP3', length: 157},
-    8: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight8.mp3', length: 147},
-    9: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight9.mp3', length: 141},
-    10: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight10.mp3', length: 248},
-    11: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight11.mp3', length: 173},
-    12: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight12.mp3', length: 175},
-    13: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight13.mp3', length: 205}
+    1: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight1.mp3', length: 92},
+    2: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight2.mp3', length: 247},
+    3: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight3.mp3', length: 247},
+    4: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight4.mp3', length: 250},
+    5: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight5.mp3', length: 174},
+    6: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight6.mp3', length: 156},
+    7: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight7.MP3', length: 146},
+    8: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight8.mp3', length: 139},
+    9: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight9.mp3', length: 320},
+    10: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight10.mp3', length: 204},
+    11: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight11.mp3', length: 140},
+    12: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight12.mp3', length: 174},
+    13: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight13.mp3', length: 122}
 }
 
 // Assumes calculateAndInsertAggregatedAttrs has already been called

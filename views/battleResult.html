@@ -16,6 +16,7 @@
             else {
                 $('#status').html('Defeat').css('color', 'red');
             }
+            playBackgroundMusic();
         });
 
         function playBackgroundMusic() {
@@ -23,11 +24,13 @@
             if (get('winner') == 'p') {
                 sound = new Audio('https://dl.dropboxusercontent.com/u/14577270/holiday2013/Victory.mp3');
             }
-            sound.play();
+            setTimeout(function(){
+                sound.play();
+            }, 400);
         }
     </script>
 </head>
-<body onload="playBackgroundMusic()" style='background: url("../resource/battle_result.jpg") no-repeat center center fixed; background-size: cover'>
+<body style='background: url("../resource/battle_result.jpg") no-repeat center center fixed; background-size: cover'>
     <div style="height: 100%; width: 100%; text-align: center">
         <h1 id="status" style="font-size: 3200%"></h1>
     </div>
