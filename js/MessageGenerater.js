@@ -60,7 +60,7 @@ function MessageGenerater() {
 
         if (target['aggrHp'] > 0) {
             message += '<span style="color:deepskyblue">' + target['playerName'] + '</span> has ';
-            message += '<span style="color:green">' + target['aggrHp'] + ' HP</span> left';
+            message += '<span style="color:#0f9312">' + target['aggrHp'] + ' HP</span> left';
         }
         else { // target defeated
             message += '<span style="color:deepskyblue">' + target['playerName'] + '</span> ';
@@ -137,7 +137,7 @@ function MessageGenerater() {
 
     this.generateAttackingMessage = function(attacker) {
         var message = '';
-        message += '<span style="color:green">' + attacker['playerName'] + '</span> is attacking';
+        message += '<span style="color:#0f9312">' + attacker['playerName'] + '</span> is attacking';
         return message;
     }
 }

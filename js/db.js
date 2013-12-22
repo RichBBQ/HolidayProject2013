@@ -140,6 +140,18 @@ var backgroundSongMappings = {
     13: {link: 'https://dl.dropboxusercontent.com/u/14577270/holiday2013/fight13.mp3', length: 123}
 }
 
+var backgroundImages = [
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/1.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/2.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/3.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/4.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/5.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/6.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/7.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/8.jpg',
+    'https://dl.dropboxusercontent.com/u/14577270/holiday2013/backgrounds/9.jpg'
+];
+
 // Assumes calculateAndInsertAggregatedAttrs has already been called
 function applyMonsterTypeBonusForPlayers(playersData, monsterData) {
     var bonusType = 'b'; // bonus prefix
@@ -281,6 +293,16 @@ module.exports = {
     },
     getSoundEffectMappingData: function() {
         return soundEffectMappings;
+    },
+    getBackgroundLinkData: function(queryData) {
+        if (queryData.hasOwnProperty('bgId')
+            && (parseInt(queryData['bgId']) < backgroundImages.length)) {
+            return {link: backgroundImages[queryData['bgId']], bgIndex: parseInt(queryData['bgId'])};
+        }
+        else {
+            var randIndex = Math.floor(Math.random() * (backgroundImages.length - 1));
+            return {link: backgroundImages[randIndex], bgIndex: randIndex};
+        }
     }
 }
 

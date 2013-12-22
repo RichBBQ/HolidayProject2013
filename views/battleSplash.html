@@ -3,6 +3,15 @@
 <head>
     <title>Battle Overview!</title>
     <link rel="stylesheet" type="text/css" href="../css/battleLayout.css" />
+    <style type="text/css">
+        html, body{
+            background: url("{{backgroundLink}}") no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+    </style>
     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
     <script type="text/javascript">
         $(document).ready(function($) {
@@ -18,7 +27,7 @@
 
         $(document).keydown(function(e){
             if (e.keyCode === 32) { // white space
-                window.location = 'fightMonster' + document.location.search;
+                window.location = 'fightMonster' + document.location.search + '&bgId={{bgIndex}}';
             }
         });
     </script>

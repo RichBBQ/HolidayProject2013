@@ -112,10 +112,13 @@ app.get('/enterTeams', function(req, res){
     res.sendfile(enterTeamsPage, {root: __dirname});
 });
 app.get('/battleSplash', function(req, res){
+    var bgData = db.getBackgroundLinkData(req.query);
     var renderBattleSplash = function(playerData, monsterData) {
         var renderParam = {
             playerData: playerData,
             monsterData: monsterData,
+            backgroundLink: bgData['link'],
+            bgIndex: bgData['bgIndex'],
             layout: 'battleSplash.html'
         };
         res.render('battleSplash', renderParam);
@@ -124,12 +127,14 @@ app.get('/battleSplash', function(req, res){
 });
 app.get('/fightMonster', function(req, res){
     var soundEffectMap = db.getSoundEffectMappingData();
+    var bgData = db.getBackgroundLinkData(req.query);
     var renderFightMonster = function(playerData, monsterData, backgroundSoundData) {
         var renderParam = {
             playerData: playerData,
             monsterData: monsterData,
             soundEffectMap: soundEffectMap,
             backgroundSoundData: backgroundSoundData,
+            backgroundLink: bgData['link'],
             layout: 'fightMonster.html'
         };
         res.render('fightMonster', renderParam);
